@@ -1,6 +1,6 @@
 import re
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field, field_validator, EmailStr
+from pydantic import BaseModel, Field, field_validator
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from app.services.auth import register_user, login_user, create_access_token
@@ -8,20 +8,29 @@ from app.services.auth import register_user, login_user, create_access_token
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
-PASSWORD_PATTERN = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$')
+EMAIL_RE = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$')
+PASSWORD_RE = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$')
 
 
 class RegisterRequest(BaseModel):
-    email: EmailStr
+    email: str = Field(min_length=5, max_length=254)
     password: str = Field(min_length=8, max_length=128)
     full_name: str = Field(min_length=2, max_length=80)
+
+    @field_validator("email")
+    @classmethod
+    def valid_email(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not EMAIL_RE.match(v):
+            raise ValueError("Enter a valid email address")
+        return v
 
     @field_validator("password")
     @classmethod
     def strong_password(cls, v: str) -> str:
-        if not PASSWORD_PATTERN.match(v):
+        if not PASSWORD_RE.match(v):
             raise ValueError(
-                "Password must be at least 8 characters and contain uppercase, lowercase, and a number"
+                "Password must be at least 8 characters with uppercase, lowercase, and a number"
             )
         return v
 
@@ -35,8 +44,13 @@ class RegisterRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str = Field(min_length=5, max_length=254)
     password: str = Field(min_length=1, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def valid_email(cls, v: str) -> str:
+        return v.strip().lower()
 
 
 class TokenResponse(BaseModel):

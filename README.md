@@ -1,6 +1,6 @@
 # ForexLive
 
-> **Live demo:** [https://forexlive.onrender.com](https://forexlive.onrender.com)
+
 
 Real-time forex trading dashboard for G30 currency pairs. Streams live tick data via WebSockets, detects consolidation zones automatically, fires instant browser alerts when price touches key levels, and shows upcoming high-impact news events with live countdowns.
 

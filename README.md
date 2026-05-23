@@ -2,7 +2,7 @@
 
 
 
-Real-time forex trading dashboard for G30 currency pairs. Streams live tick data via WebSockets, detects consolidation zones automatically, fires instant browser alerts when price touches key levels, and shows upcoming high-impact news events with live countdowns.
+Real-time forex trading dashboard for currency pairs. Streams live tick data via WebSockets, detects consolidation zones automatically, fires instant browser alerts when price touches key levels, and shows upcoming high-impact news events with live countdowns.
 
 Built by a trader who trades USD/JPY and understands consolidation setups — not a chart wrapper.
 

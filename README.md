@@ -4,7 +4,7 @@
 
 Real-time forex trading dashboard for currency pairs. Streams live tick data via WebSockets, detects consolidation zones automatically, fires instant browser alerts when price touches key levels, and shows upcoming high-impact news events with live countdowns.
 
-Built by a trader who trades USD/JPY and understands consolidation setups — not a chart wrapper.
+Built by a trader who trades USD/JPY and understands consolidation setups not a chart wrapper.
 
 ---
 
@@ -12,11 +12,11 @@ Built by a trader who trades USD/JPY and understands consolidation setups — no
 
 | Feature | Description |
 |---|---|
-| **Live Price Streaming** | WebSocket tick data for USD/JPY, EUR/USD, GBP/USD, USD/ZAR — no polling |
-| **Consolidation Detector** | Flags when last 20 candles are ranging within 0.15% — draws shaded band on chart |
+| **Live Price Streaming** | WebSocket tick data for USD/JPY, EUR/USD, GBP/USD, USD/ZAR no polling |
+| **Consolidation Detector** | Flags when last 20 candles are ranging within 0.15% draws shaded band on chart |
 | **Key Level Alerts** | Set a price level → instant browser toast when price crosses it |
 | **News Calendar** | Next 5 high-impact events with live countdown + red banner when event is live |
-| **Session Indicator** | Tokyo / London / New York / Overlap in SAST — overlap highlighted (highest liquidity) |
+| **Session Indicator** | Tokyo / London / New York / Overlap in SAST overlap highlighted (highest liquidity) |
 | **Live Ticker** | Scrolling bid/ask bar for all 4 pairs, green/red on direction |
 
 ---
@@ -34,7 +34,7 @@ The backend maintains a single upstream WebSocket connection to Twelve Data. Eve
 3. The `on_tick` callback in `main.py` runs consolidation detection and key level checks against the live database
 4. `ConnectionManager.broadcast()` sends a typed JSON message to all clients subscribed to that pair
 
-Clients reconnect automatically after 3 seconds on disconnect. The server never crashes on a dropped connection — dead connections are cleaned from the pool lazily on the next broadcast.
+Clients reconnect automatically after 3 seconds on disconnect. The server never crashes on a dropped connection dead connections are cleaned from the pool lazily on the next broadcast.
 
 ### Message schema
 
@@ -110,13 +110,13 @@ Backend API docs at [http://localhost:8000/docs](http://localhost:8000/docs) (de
 ## API Reference
 
 ```
-GET  /health                        — Health check
-GET  /api/v1/news                   — Next 5 high-impact events
-GET  /api/v1/alerts?pair=USD/JPY   — List active key level alerts
-POST /api/v1/alerts                 — Create alert { pair, level, direction }
-DELETE /api/v1/alerts/{id}          — Remove alert
+GET  /health                        Health check
+GET  /api/v1/news                   Next 5 high-impact events
+GET  /api/v1/alerts?pair=USD/JPY   List active key level alerts
+POST /api/v1/alerts                 Create alert { pair, level, direction }
+DELETE /api/v1/alerts/{id}          Remove alert
 
-WS   /ws/{pair}                     — Real-time stream (e.g. /ws/USD%2FJPY)
+WS   /ws/{pair}                     Real-time stream (e.g. /ws/USD%2FJPY)
 ```
 
 ---
@@ -127,26 +127,26 @@ WS   /ws/{pair}                     — Real-time stream (e.g. /ws/USD%2FJPY)
 forexlive/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py              — FastAPI app, lifespan, tick handler
-│   │   ├── config.py            — Pydantic settings
+│   │   ├── main.py              FastAPI app, lifespan, tick handler
+│   │   ├── config.py            Pydantic settings
 │   │   ├── routers/
-│   │   │   ├── ws.py            — WebSocket endpoint + ConnectionManager
-│   │   │   ├── alerts.py        — REST CRUD for key level alerts
-│   │   │   └── health.py        — Health + news endpoints
+│   │   │   ├── ws.py            WebSocket endpoint + ConnectionManager
+│   │   │   ├── alerts.py        REST CRUD for key level alerts
+│   │   │   └── health.py        Health + news endpoints
 │   │   ├── services/
-│   │   │   ├── twelve_data.py   — Twelve Data WS client + CandleAggregator
-│   │   │   ├── consolidation.py — Consolidation zone detection
-│   │   │   ├── key_levels.py    — Alert persistence + trigger logic
-│   │   │   └── news_calendar.py — Upcoming high-impact events
-│   │   ├── models/schemas.py    — Pydantic request/response models
-│   │   └── db/                  — SQLAlchemy engine + ORM models
-│   └── tests/                   — pytest test suite
+│   │   │   ├── twelve_data.py   Twelve Data WS client + CandleAggregator
+│   │   │   ├── consolidation.py Consolidation zone detection
+│   │   │   ├── key_levels.py    Alert persistence + trigger logic
+│   │   │   └── news_calendar.py Upcoming high-impact events
+│   │   ├── models/schemas.py    Pydantic request/response models
+│   │   └── db/                  SQLAlchemy engine + ORM models
+│   └── tests/                   pytest test suite
 ├── frontend/
 │   └── src/
-│       ├── components/          — SessionIndicator, LiveTicker, PriceChart, etc.
-│       ├── hooks/               — useWebSocket, useChartData
-│       ├── pages/Dashboard.tsx  — Main layout
-│       └── types/index.ts       — Shared TypeScript types
+│       ├── components/          SessionIndicator, LiveTicker, PriceChart, etc.
+│       ├── hooks/               useWebSocket, useChartData
+│       ├── pages/Dashboard.tsx  Main layout
+│       └── types/index.ts       Shared TypeScript types
 ├── docker-compose.yml
 └── .github/workflows/deploy.yml
 ```
@@ -156,7 +156,7 @@ forexlive/
 ## Deployment on Render
 
 1. Push to GitHub
-2. Create two Render services — one Web Service (backend), one Static Site or Web Service (frontend)
+2. Create two Render services one Web Service (backend), one Static Site or Web Service (frontend)
 3. Set environment variables in Render dashboard:
    - `TWELVE_DATA_API_KEY`
    - `DATABASE_URL` (Render PostgreSQL connection string)
@@ -164,7 +164,7 @@ forexlive/
 4. Add Render deploy hook URLs as GitHub secrets:
    - `RENDER_DEPLOY_HOOK_BACKEND`
    - `RENDER_DEPLOY_HOOK_FRONTEND`
-5. Push to `main` — GitHub Actions runs tests then triggers Render deploys
+5. Push to `main` GitHub Actions runs tests then triggers Render deploys
 
 ---
 
@@ -185,4 +185,4 @@ Tests cover:
 
 ---
 
-*Built by Al Mujati — trader and developer.*
+*Built by Al Mujati trader and developer.*

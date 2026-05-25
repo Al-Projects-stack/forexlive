@@ -186,3 +186,10 @@ Tests cover:
 ---
 
 *Built by Al Mujati trader and developer.*
+
+## What I Learned
+
+- Keeping a WebSocket connection alive in the browser with reconnect logic and how tick data differs from polling REST endpoints
+- Writing a consolidation zone detector that scans the last 20 candles programmatically rather than eyeballing the chart
+- Using the Notifications API to fire real-time browser alerts when a user-set price level is crossed
+- How forex session windows (Tokyo, London, New York) affect price behavior and why overlap periods show the most movement

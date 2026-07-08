@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const TICKER_PAIRS = [
   { pair: 'EUR/USD', price: '1.08432', change: '+0.021%', up: true },

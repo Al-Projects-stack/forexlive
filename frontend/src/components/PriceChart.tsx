@@ -3,11 +3,10 @@ import {
   createChart,
   IChartApi,
   ISeriesApi,
-  CandlestickSeries,
-  LineSeries,
   IPriceLine,
   Time,
   ColorType,
+  LineStyle,
 } from 'lightweight-charts'
 import { Candle, ConsolidationZone, Alert, Pair } from '../types'
 
@@ -45,8 +44,8 @@ export const PriceChart = ({ pair: _pair, candles, consolidationZone, alerts, ne
         horzLines: { color: '#1f2937' },
       },
       crosshair: {
-        vertLine: { color: '#4b5563', width: 1, style: 3 },
-        horzLine: { color: '#4b5563', width: 1, style: 3 },
+        vertLine: { color: '#4b5563', width: 1, style: LineStyle.Dashed },
+        horzLine: { color: '#4b5563', width: 1, style: LineStyle.Dashed },
       },
       rightPriceScale: { borderColor: '#1f2937' },
       timeScale: { borderColor: '#1f2937', timeVisible: true, secondsVisible: false },
@@ -54,7 +53,7 @@ export const PriceChart = ({ pair: _pair, candles, consolidationZone, alerts, ne
       height: containerRef.current.clientHeight,
     })
 
-    const candleSeries = chart.addSeries(CandlestickSeries, {
+    const candleSeries = chart.addCandlestickSeries({
       upColor: '#4ade80',
       downColor: '#f87171',
       borderUpColor: '#4ade80',
@@ -63,20 +62,19 @@ export const PriceChart = ({ pair: _pair, candles, consolidationZone, alerts, ne
       wickDownColor: '#f87171',
     })
 
-    // Consolidation band — two line series with area fill via top series
-    const consolidationTop = chart.addSeries(LineSeries, {
+    const consolidationTop = chart.addLineSeries({
       color: 'rgba(251, 191, 36, 0.6)',
       lineWidth: 1,
-      lineStyle: 2,
+      lineStyle: LineStyle.Dashed,
       priceLineVisible: false,
       lastValueVisible: false,
       crosshairMarkerVisible: false,
     })
 
-    const consolidationBot = chart.addSeries(LineSeries, {
+    const consolidationBot = chart.addLineSeries({
       color: 'rgba(251, 191, 36, 0.6)',
       lineWidth: 1,
-      lineStyle: 2,
+      lineStyle: LineStyle.Dashed,
       priceLineVisible: false,
       lastValueVisible: false,
       crosshairMarkerVisible: false,
@@ -124,7 +122,7 @@ export const PriceChart = ({ pair: _pair, candles, consolidationZone, alerts, ne
     }
   }, [candles])
 
-  // Draw key level lines — remove old, add new
+  // Draw key level lines
   useEffect(() => {
     if (!candleSeriesRef.current) return
     const series = candleSeriesRef.current
@@ -132,14 +130,13 @@ export const PriceChart = ({ pair: _pair, candles, consolidationZone, alerts, ne
     priceLinesRef.current.forEach((pl) => {
       try { series.removePriceLine(pl) } catch { /* already removed */ }
     })
-    priceLinesRef.current = []
 
     priceLinesRef.current = alerts.map((alert) =>
       series.createPriceLine({
         price: alert.level,
         color: '#60a5fa',
         lineWidth: 1,
-        lineStyle: 2,
+        lineStyle: LineStyle.Dashed,
         axisLabelVisible: true,
         title: `${alert.direction} ${alert.level}`,
       })
@@ -174,7 +171,5 @@ export const PriceChart = ({ pair: _pair, candles, consolidationZone, alerts, ne
     ])
   }, [consolidationZone, candles])
 
-  return (
-    <div ref={containerRef} className="w-full h-full" />
-  )
+  return <div ref={containerRef} className="w-full h-full" />
 }

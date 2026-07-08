@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast'
 import { PAIRS, Pair, Alert } from '../types'
 import { useAuth } from '../context/AuthContext'
 import { useChartData } from '../hooks/useChartData'
+import { useDesktopNotifications } from '../hooks/useDesktopNotifications'
 import { SessionIndicator } from '../components/SessionIndicator'
 import { LiveTicker } from '../components/LiveTicker'
 import { PriceChart } from '../components/PriceChart'
@@ -12,6 +13,7 @@ import { AlertPanel } from '../components/AlertPanel'
 import { KeyLevelAlert } from '../components/KeyLevelAlert'
 import { NewsCalendar } from '../components/NewsCalendar'
 import { NewsWarningBanner } from '../components/NewsWarningBanner'
+import { PositionPnL } from '../components/PositionPnL'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
@@ -24,6 +26,8 @@ export const Dashboard = () => {
   const handleLogout = () => { logout(); navigate('/') }
 
   const { candles, currentPrice, consolidationZone, lastMessage, isConnected, connectionError } = useChartData(activePair)
+
+  useDesktopNotifications(lastMessage)
 
   // Fetch persisted alerts on mount and pair change
   useEffect(() => {
@@ -159,6 +163,11 @@ export const Dashboard = () => {
 
           {/* News calendar */}
           <NewsCalendar />
+
+          <div className="w-full h-px bg-terminal-border" />
+
+          {/* Positions */}
+          <PositionPnL currentPrice={currentPrice} activePair={activePair} />
         </div>
       </div>
     </div>

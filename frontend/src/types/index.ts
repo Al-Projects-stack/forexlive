@@ -84,3 +84,14 @@ export interface TickerEntry {
   change: number
   changePct: number
 }
+
+export type PositionDirection = 'LONG' | 'SHORT'
+
+export interface PositionEntry {
+  id: string
+  pair: Pair
+  direction: PositionDirection
+  entryPrice: number
+  quantity: number
+  createdAt: string
+}

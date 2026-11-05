@@ -1,9 +1,10 @@
 import { useState, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { WarningCircle, CheckCircle, Circle } from '@phosphor-icons/react'
 import { useAuth } from '../context/AuthContext'
 
-function FieldError({ msg }: { msg: string }) {
-  return <p className="text-red-400 text-xs mt-1 font-mono">{msg}</p>
+function FieldError({ id, msg }: { id?: string; msg: string }) {
+  return <p id={id} role="alert" className="text-red-400 text-xs mt-1 font-mono">{msg}</p>
 }
 
 function PasswordStrength({ password }: { password: string }) {
@@ -20,7 +21,7 @@ function PasswordStrength({ password }: { password: string }) {
   if (!password) return null
 
   return (
-    <div className="mt-2 space-y-2">
+    <div className="mt-2 space-y-2" aria-live="polite">
       <div className="flex gap-1">
         {[1, 2, 3, 4].map(i => (
           <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= score ? colors[score] : 'bg-gray-700'}`} />
@@ -30,7 +31,7 @@ function PasswordStrength({ password }: { password: string }) {
       <div className="flex flex-wrap gap-x-3 gap-y-1">
         {checks.map(c => (
           <span key={c.label} className={`text-xs font-mono flex items-center gap-1 ${c.ok ? 'text-green-400' : 'text-gray-600'}`}>
-            {c.ok ? '✓' : '○'} {c.label}
+            {c.ok ? <CheckCircle size={14} weight="bold" aria-hidden="true" /> : <Circle size={14} aria-hidden="true" />} {c.label}
           </span>
         ))}
       </div>
@@ -102,71 +103,85 @@ export const Register = () => {
           <p className="text-gray-500 text-sm mb-8">Start trading with live forex data</p>
 
           {serverError && (
-            <div className="flex items-center gap-2 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm mb-6">
-              <span>⚠</span> {serverError}
+            <div role="alert" className="flex items-start gap-2 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm mb-6">
+              <WarningCircle size={18} weight="bold" className="shrink-0 mt-0.5" aria-hidden="true" /> {serverError}
             </div>
           )}
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <div>
-              <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
+              <label htmlFor="fullName" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
                 Full Name
               </label>
               <input
+                id="fullName"
                 type="text"
                 value={fullName}
                 onChange={e => { setFullName(e.target.value); clear('fullName') }}
                 placeholder="Al Mujati"
+                aria-invalid={Boolean(errors.fullName)}
+                aria-describedby={errors.fullName ? 'fullName-error' : undefined}
                 className={`w-full bg-gray-800 border text-gray-100 text-sm px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-colors placeholder-gray-600 ${errors.fullName ? 'border-red-500' : 'border-gray-700 focus:border-green-500'}`}
               />
-              {errors.fullName && <FieldError msg={errors.fullName} />}
+              {errors.fullName && <FieldError id="fullName-error" msg={errors.fullName} />}
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
+              <label htmlFor="email" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
                 Email
               </label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={e => { setEmail(e.target.value); clear('email') }}
                 placeholder="trader@example.com"
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? 'email-error' : undefined}
                 className={`w-full bg-gray-800 border text-gray-100 text-sm px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-colors placeholder-gray-600 ${errors.email ? 'border-red-500' : 'border-gray-700 focus:border-green-500'}`}
               />
-              {errors.email && <FieldError msg={errors.email} />}
+              {errors.email && <FieldError id="email-error" msg={errors.email} />}
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
+              <label htmlFor="password" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
                 Password
               </label>
               <input
+                id="password"
                 type="password"
                 value={password}
                 onChange={e => { setPassword(e.target.value); clear('password') }}
                 placeholder="••••••••"
+                aria-invalid={Boolean(errors.password)}
+                aria-describedby={errors.password ? 'password-error' : undefined}
                 className={`w-full bg-gray-800 border text-gray-100 text-sm px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-colors placeholder-gray-600 ${errors.password ? 'border-red-500' : 'border-gray-700 focus:border-green-500'}`}
               />
               <PasswordStrength password={password} />
-              {errors.password && <FieldError msg={errors.password} />}
+              {errors.password && <FieldError id="password-error" msg={errors.password} />}
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
+              <label htmlFor="confirm" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
                 Confirm Password
               </label>
               <input
+                id="confirm"
                 type="password"
                 value={confirm}
                 onChange={e => { setConfirm(e.target.value); clear('confirm') }}
                 placeholder="••••••••"
+                aria-invalid={Boolean(errors.confirm)}
+                aria-describedby={errors.confirm ? 'confirm-error' : undefined}
                 className={`w-full bg-gray-800 border text-gray-100 text-sm px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-colors placeholder-gray-600 ${
                   errors.confirm ? 'border-red-500' : confirm && confirm === password ? 'border-green-500' : 'border-gray-700 focus:border-green-500'
                 }`}
               />
-              {errors.confirm && <FieldError msg={errors.confirm} />}
+              {errors.confirm && <FieldError id="confirm-error" msg={errors.confirm} />}
               {confirm && confirm === password && !errors.confirm && (
-                <p className="text-green-400 text-xs mt-1 font-mono">✓ Passwords match</p>
+                <p className="text-green-400 text-xs mt-1 font-mono flex items-center gap-1">
+                  <CheckCircle size={14} weight="bold" aria-hidden="true" /> Passwords match
+                </p>
               )}
             </div>
 

@@ -1,9 +1,10 @@
 import { useState, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { WarningCircle } from '@phosphor-icons/react'
 import { useAuth } from '../context/AuthContext'
 
-function FieldError({ msg }: { msg: string }) {
-  return <p className="text-red-400 text-xs mt-1 font-mono">{msg}</p>
+function FieldError({ id, msg }: { id?: string; msg: string }) {
+  return <p id={id} role="alert" className="text-red-400 text-xs mt-1 font-mono">{msg}</p>
 }
 
 export const Login = () => {
@@ -61,40 +62,46 @@ export const Login = () => {
           <p className="text-gray-500 text-sm mb-8">Sign in to your trading dashboard</p>
 
           {serverError && (
-            <div className="flex items-center gap-2 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm mb-6">
-              <span>⚠</span> {serverError}
+            <div role="alert" className="flex items-start gap-2 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm mb-6">
+              <WarningCircle size={18} weight="bold" className="shrink-0 mt-0.5" aria-hidden="true" /> {serverError}
             </div>
           )}
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <div>
-              <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
+              <label htmlFor="email" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
                 Email
               </label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={e => { setEmail(e.target.value); setErrors(v => ({ ...v, email: '' })) }}
                 placeholder="trader@example.com"
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? 'email-error' : undefined}
                 className={`w-full bg-gray-800 border text-gray-100 text-sm px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-colors placeholder-gray-600 ${errors.email ? 'border-red-500' : 'border-gray-700 focus:border-green-500'}`}
               />
-              {errors.email && <FieldError msg={errors.email} />}
+              {errors.email && <FieldError id="email-error" msg={errors.email} />}
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <label htmlFor="password" className="block text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Password
                 </label>
               </div>
               <input
+                id="password"
                 type="password"
                 value={password}
                 onChange={e => { setPassword(e.target.value); setErrors(v => ({ ...v, password: '' })) }}
                 placeholder="••••••••"
+                aria-invalid={Boolean(errors.password)}
+                aria-describedby={errors.password ? 'password-error' : undefined}
                 className={`w-full bg-gray-800 border text-gray-100 text-sm px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-colors placeholder-gray-600 ${errors.password ? 'border-red-500' : 'border-gray-700 focus:border-green-500'}`}
               />
-              {errors.password && <FieldError msg={errors.password} />}
+              {errors.password && <FieldError id="password-error" msg={errors.password} />}
             </div>
 
             <button

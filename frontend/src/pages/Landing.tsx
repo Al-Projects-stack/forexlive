@@ -1,5 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import {
+  Lightning,
+  ChartLineUp,
+  Target,
+  Newspaper,
+  Globe,
+  LockSimple,
+} from '@phosphor-icons/react'
 
 const TICKER_PAIRS = [
   { pair: 'EUR/USD', price: '1.08432', change: '+0.021%', up: true },
@@ -10,32 +18,32 @@ const TICKER_PAIRS = [
 
 const FEATURES = [
   {
-    icon: '⚡',
+    Icon: Lightning,
     title: 'Live WebSocket Streaming',
     desc: 'Tick-level price data delivered over WebSocket with zero polling. Price updates the instant the market moves.',
   },
   {
-    icon: '📊',
+    Icon: ChartLineUp,
     title: 'Consolidation Detector',
     desc: 'Automatically identifies when price is ranging. A shaded zone appears on the chart when the last 20 candles stay within 0.15%.',
   },
   {
-    icon: '🎯',
+    Icon: Target,
     title: 'Key Level Alerts',
     desc: 'Set a price level once. Get an instant browser notification the moment price crosses it — no tab-watching needed.',
   },
   {
-    icon: '📰',
+    Icon: Newspaper,
     title: 'News Impact Calendar',
     desc: 'High-impact events with live countdowns. A red banner fires when a HIGH-impact release is within 5 minutes.',
   },
   {
-    icon: '🌏',
+    Icon: Globe,
     title: 'Session Indicator',
     desc: 'Tokyo, London, New York and the London/NY overlap — all displayed in SAST. Know exactly which session is driving liquidity.',
   },
   {
-    icon: '🔒',
+    Icon: LockSimple,
     title: 'Secure & Persistent',
     desc: 'Your key levels are saved across sessions. JWT-authenticated, rate-limited API. Nothing exposed to the client.',
   },
@@ -168,7 +176,9 @@ export const Landing = () => {
               key={f.title}
               className="p-6 bg-gray-900 border border-gray-800 rounded-xl hover:border-gray-600 transition-colors group"
             >
-              <div className="text-2xl mb-4">{f.icon}</div>
+              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-green-500/10 text-green-400 mb-4 group-hover:bg-green-500/15 transition-colors">
+                <f.Icon size={20} weight="bold" aria-hidden="true" />
+              </div>
               <h3 className="font-semibold text-white mb-2 group-hover:text-green-400 transition-colors">
                 {f.title}
               </h3>

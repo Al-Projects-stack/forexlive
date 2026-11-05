@@ -22,6 +22,40 @@ class ConsolidationZone(BaseModel):
     midpoint: Optional[float] = None
 
 
+class OrderBlock(BaseModel):
+    type: str  # BULLISH | BEARISH
+    top: float
+    bottom: float
+    timestamp: Optional[datetime] = None
+
+
+class FairValueGap(BaseModel):
+    type: str  # BULLISH | BEARISH
+    top: float
+    bottom: float
+    timestamp: Optional[datetime] = None
+
+
+class LiquiditySweep(BaseModel):
+    type: str  # HIGH_SWEEP | LOW_SWEEP
+    level: float
+    timestamp: Optional[datetime] = None
+
+
+class MarketStructureEvent(BaseModel):
+    type: str  # BOS | CHoCH
+    direction: str  # BULLISH | BEARISH
+    level: float
+    timestamp: Optional[datetime] = None
+
+
+class SmartMoneyZones(BaseModel):
+    order_blocks: list[OrderBlock] = Field(default_factory=list)
+    fair_value_gaps: list[FairValueGap] = Field(default_factory=list)
+    liquidity_sweep: Optional[LiquiditySweep] = None
+    structure: Optional[MarketStructureEvent] = None
+
+
 class KeyLevelTriggered(BaseModel):
     level: float
     direction: str
@@ -41,6 +75,7 @@ class WSMessage(BaseModel):
     consolidation_zone: Optional[ConsolidationZone] = None
     key_level_triggered: Optional[KeyLevelTriggered] = None
     news_warning: Optional[NewsWarning] = None
+    smart_money: Optional[SmartMoneyZones] = None
 
 
 class AlertRequest(BaseModel):

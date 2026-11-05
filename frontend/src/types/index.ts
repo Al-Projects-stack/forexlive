@@ -18,6 +18,40 @@ export interface ConsolidationZone {
   midpoint: number | null
 }
 
+export interface OrderBlock {
+  type: 'BULLISH' | 'BEARISH'
+  top: number
+  bottom: number
+  timestamp?: string
+}
+
+export interface FairValueGap {
+  type: 'BULLISH' | 'BEARISH'
+  top: number
+  bottom: number
+  timestamp?: string
+}
+
+export interface LiquiditySweep {
+  type: 'HIGH_SWEEP' | 'LOW_SWEEP'
+  level: number
+  timestamp?: string
+}
+
+export interface MarketStructureEvent {
+  type: 'BOS' | 'CHoCH'
+  direction: 'BULLISH' | 'BEARISH'
+  level: number
+  timestamp?: string
+}
+
+export interface SmartMoneyZones {
+  order_blocks: OrderBlock[]
+  fair_value_gaps: FairValueGap[]
+  liquidity_sweep: LiquiditySweep | null
+  structure: MarketStructureEvent | null
+}
+
 export interface KeyLevelTriggered {
   level: number
   direction: 'ABOVE' | 'BELOW' | 'EITHER'
@@ -46,6 +80,7 @@ export interface WSMessage {
   consolidation_zone?: ConsolidationZone
   key_level_triggered?: KeyLevelTriggered
   news_warning?: NewsWarning
+  smart_money?: SmartMoneyZones
 }
 
 export interface Alert {

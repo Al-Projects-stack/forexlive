@@ -17,6 +17,7 @@ from app.routers.ws import manager
 from app.services.consolidation import get_consolidation_zone
 from app.services.key_levels import check_key_levels
 from app.services.news_calendar import get_imminent_high_impact_event
+from app.services.smart_money import analyze_smart_money
 from app.services.twelve_data import TwelveDataStream
 
 logging.basicConfig(
@@ -34,6 +35,7 @@ async def on_tick(pair: str, price: float, timestamp: datetime):
     candles = stream.aggregator.get_candles(pair)
     current_candle = stream.aggregator.get_current_candle(pair)
     consolidation_zone = get_consolidation_zone(candles)
+    smart_money_zones = analyze_smart_money(candles)
 
     # Check key levels
     previous_price = price  # fallback
@@ -61,6 +63,7 @@ async def on_tick(pair: str, price: float, timestamp: datetime):
         "lower": consolidation_zone.lower,
         "midpoint": consolidation_zone.midpoint,
     }
+    smart_money_dict = smart_money_zones.model_dump(mode="json")
 
     # Send a CANDLE_UPDATE message
     message = {
@@ -72,6 +75,7 @@ async def on_tick(pair: str, price: float, timestamp: datetime):
         "consolidation_zone": consolidation_dict,
         "key_level_triggered": None,
         "news_warning": None,
+        "smart_money": smart_money_dict,
     }
     await manager.broadcast(pair, message)
 
@@ -89,6 +93,7 @@ async def on_tick(pair: str, price: float, timestamp: datetime):
                 "direction": triggered.direction,
             },
             "news_warning": None,
+            "smart_money": smart_money_dict,
         }
         await manager.broadcast(pair, alert_message)
 
@@ -107,6 +112,7 @@ async def on_tick(pair: str, price: float, timestamp: datetime):
                 "minutes_away": news_event["minutes_away"],
                 "impact": news_event["impact"],
             },
+            "smart_money": smart_money_dict,
         }
         await manager.broadcast(pair, news_message)
 

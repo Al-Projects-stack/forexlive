@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Candle, Pair, ConsolidationZone, WSMessage } from '../types'
+import { Candle, Pair, ConsolidationZone, SmartMoneyZones, WSMessage } from '../types'
 import { useWebSocket } from './useWebSocket'
 
 const MAX_CANDLES = 100
@@ -8,6 +8,7 @@ export interface UseChartDataResult {
   candles: Candle[]
   currentPrice: number | null
   consolidationZone: ConsolidationZone | null
+  smartMoney: SmartMoneyZones | null
   lastMessage: WSMessage | null
   isConnected: boolean
   connectionError: string | null
@@ -17,6 +18,7 @@ export const useChartData = (pair: Pair): UseChartDataResult => {
   const [candles, setCandles] = useState<Candle[]>([])
   const [currentPrice, setCurrentPrice] = useState<number | null>(null)
   const [consolidationZone, setConsolidationZone] = useState<ConsolidationZone | null>(null)
+  const [smartMoney, setSmartMoney] = useState<SmartMoneyZones | null>(null)
   const { isConnected, lastMessage, connectionError } = useWebSocket(pair)
   const candleMapRef = useRef<Map<string, Candle>>(new Map())
 
@@ -25,6 +27,7 @@ export const useChartData = (pair: Pair): UseChartDataResult => {
     setCandles([])
     setCurrentPrice(null)
     setConsolidationZone(null)
+    setSmartMoney(null)
     candleMapRef.current = new Map()
   }, [pair])
 
@@ -38,6 +41,10 @@ export const useChartData = (pair: Pair): UseChartDataResult => {
 
     if (lastMessage.consolidation_zone) {
       setConsolidationZone(lastMessage.consolidation_zone)
+    }
+
+    if (lastMessage.smart_money) {
+      setSmartMoney(lastMessage.smart_money)
     }
 
     if (lastMessage.candle && lastMessage.timestamp) {
@@ -56,5 +63,5 @@ export const useChartData = (pair: Pair): UseChartDataResult => {
     }
   }, [lastMessage, pair])
 
-  return { candles, currentPrice, consolidationZone, lastMessage, isConnected, connectionError }
+  return { candles, currentPrice, consolidationZone, smartMoney, lastMessage, isConnected, connectionError }
 }

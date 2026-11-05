@@ -14,6 +14,7 @@ import { KeyLevelAlert } from '../components/KeyLevelAlert'
 import { NewsCalendar } from '../components/NewsCalendar'
 import { NewsWarningBanner } from '../components/NewsWarningBanner'
 import { PositionPnL } from '../components/PositionPnL'
+import { SmartMoneyPanel } from '../components/SmartMoneyPanel'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
@@ -22,10 +23,11 @@ export const Dashboard = () => {
   const navigate = useNavigate()
   const [activePair, setActivePair] = useState<Pair>('EUR/USD')
   const [alerts, setAlerts] = useState<Alert[]>([])
+  const [showSmartMoney, setShowSmartMoney] = useState(true)
 
   const handleLogout = () => { logout(); navigate('/') }
 
-  const { candles, currentPrice, consolidationZone, lastMessage, isConnected, connectionError } = useChartData(activePair)
+  const { candles, currentPrice, consolidationZone, smartMoney, lastMessage, isConnected, connectionError } = useChartData(activePair)
 
   useDesktopNotifications(lastMessage)
 
@@ -122,6 +124,8 @@ export const Dashboard = () => {
             consolidationZone={consolidationZone}
             alerts={alerts}
             newsEventTime={null}
+            smartMoney={smartMoney}
+            showSmartMoney={showSmartMoney}
           />
         </div>
 
@@ -148,6 +152,16 @@ export const Dashboard = () => {
 
           {/* Consolidation badge */}
           <ConsolidationOverlay pair={activePair} zone={consolidationZone} />
+
+          <div className="w-full h-px bg-terminal-border" />
+
+          {/* Smart Money Concepts */}
+          <SmartMoneyPanel
+            pair={activePair}
+            smartMoney={smartMoney}
+            show={showSmartMoney}
+            onToggle={() => setShowSmartMoney((v) => !v)}
+          />
 
           <div className="w-full h-px bg-terminal-border" />
 

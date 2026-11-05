@@ -116,3 +116,32 @@ class TickData(BaseModel):
     timestamp: datetime
     bid: Optional[float] = None
     ask: Optional[float] = None
+
+
+class TradeReviewRequest(BaseModel):
+    pair: str = Field(description="Currency pair")
+    direction: str = Field(description="LONG or SHORT")
+    entry_price: float = Field(gt=0, description="Entry price")
+    exit_price: float = Field(gt=0, description="Exit / current price used as exit")
+    quantity: float = Field(gt=0, description="Position size")
+    pnl: float = Field(description="Realised/floating P&L at exit")
+    held_minutes: Optional[int] = Field(default=None, ge=0, description="How long the position was held, if known")
+
+    @field_validator("pair")
+    @classmethod
+    def validate_pair(cls, v: str) -> str:
+        if v not in ALLOWED_PAIRS:
+            raise ValueError(f"Pair must be one of {ALLOWED_PAIRS}")
+        return v
+
+    @field_validator("direction")
+    @classmethod
+    def validate_direction(cls, v: str) -> str:
+        if v not in ["LONG", "SHORT"]:
+            raise ValueError("Direction must be LONG or SHORT")
+        return v
+
+
+class TradeReviewResponse(BaseModel):
+    review: str
+    model: str

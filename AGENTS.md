@@ -29,6 +29,15 @@ Requests permission once on first mount and caches the result in localStorage.
 - Color-coded (green for profit, red for loss) with a total P&L summary per pair
 - Added to the Dashboard sidebar below the News Calendar
 
+### Smart Money Concepts overlay (`services/smart_money.py`, `components/SmartMoneyPanel.tsx`)
+- Backend detects order blocks, fair value gaps, liquidity sweeps, and market structure (BOS/CHoCH) from OHLC candles; broadcast alongside the consolidation zone over WS
+- Rendered on the chart (dashed zones + markers) with a sidebar panel and show/hide toggle
+
+### AI Trade Review (`services/trade_review.py`, Claude API)
+- Per-position "Review" button POSTs the trade to `/api/v1/trade-review`
+- Backend assembles the trade's live context from its own services (consolidation, smart-money structure, the trader's key levels, imminent high-impact news) and asks Claude (`claude-opus-5`) for a short, specific critique
+- Requires `ANTHROPIC_API_KEY` on the server; degrades gracefully (503 + inline message) when unset. Key stays server-side.
+
 ## New Files
 
 | File | Purpose |

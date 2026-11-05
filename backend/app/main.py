@@ -12,8 +12,9 @@ from slowapi.util import get_remote_address
 
 from app.config import settings
 from app.db.database import init_db
-from app.routers import alerts, auth, health, ws
+from app.routers import alerts, auth, health, trade_review, ws
 from app.routers.ws import manager
+from app.services import market_state
 from app.services.consolidation import get_consolidation_zone
 from app.services.key_levels import check_key_levels
 from app.services.news_calendar import get_imminent_high_impact_event
@@ -157,6 +158,7 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("Database initialised")
     manager.snapshot_provider = build_candle_snapshot
+    market_state.set_aggregator(stream.aggregator)
     stream.on_tick(on_tick)
     task = asyncio.create_task(stream.start())
     logger.info("TwelveData stream started")
@@ -191,6 +193,7 @@ app.add_middleware(
 app.include_router(ws.router)
 app.include_router(auth.router)
 app.include_router(alerts.router)
+app.include_router(trade_review.router)
 app.include_router(health.router)
 
 

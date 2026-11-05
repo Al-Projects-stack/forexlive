@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:3000"
     max_connections: int = 100
     max_key_levels_per_session: int = 10
+    # AI trade review (optional). Leave key empty to disable the feature gracefully.
+    anthropic_api_key: str = ""
+    trade_review_model: str = "claude-opus-5"
 
     class Config:
         env_file = ".env"

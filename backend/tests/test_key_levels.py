@@ -1,18 +1,17 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from app.services.key_levels import check_key_levels
-from app.db.models import KeyLevelAlert
 
 
-def make_db_alert(id_: int, level: float, direction: str) -> KeyLevelAlert:
-    alert = KeyLevelAlert()
-    alert.id = id_
-    alert.pair = "USD/JPY"
-    alert.level = level
-    alert.direction = direction
-    alert.active = True
-    alert.triggered = False
-    return alert
+def make_db_alert(id_: int, level: float, direction: str) -> dict:
+    return {
+        "id": id_,
+        "pair": "USD/JPY",
+        "level": level,
+        "direction": direction,
+        "active": True,
+        "triggered": False,
+    }
 
 
 @pytest.mark.asyncio

@@ -3,6 +3,9 @@ Database stub for local dev — no connection required.
 In production with Docker/PostgreSQL, replace engine and session with real async SQLAlchemy.
 """
 from contextlib import asynccontextmanager
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
 
 
 class _FakeSession:

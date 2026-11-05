@@ -47,6 +47,23 @@ export const useChartData = (pair: Pair): UseChartDataResult => {
       setSmartMoney(lastMessage.smart_money)
     }
 
+    // Initial backfill — populate the whole chart from aggregated history
+    if (lastMessage.type === 'CANDLE_HISTORY' && lastMessage.candles) {
+      for (const c of lastMessage.candles) {
+        if (!c.timestamp) continue
+        candleMapRef.current.set(c.timestamp.slice(0, 16), c)
+      }
+      const sorted = Array.from(candleMapRef.current.entries())
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([, c]) => c)
+        .slice(-MAX_CANDLES)
+      setCandles(sorted)
+      if (sorted.length > 0) {
+        setCurrentPrice(sorted[sorted.length - 1].close)
+      }
+      return
+    }
+
     if (lastMessage.candle && lastMessage.timestamp) {
       const minuteKey = lastMessage.timestamp.slice(0, 16) // "YYYY-MM-DDTHH:MM"
       candleMapRef.current.set(minuteKey, {

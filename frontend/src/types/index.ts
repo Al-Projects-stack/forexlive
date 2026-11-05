@@ -65,6 +65,7 @@ export interface NewsWarning {
 
 export type WSMessageType =
   | 'CANDLE_UPDATE'
+  | 'CANDLE_HISTORY'
   | 'KEY_LEVEL_ALERT'
   | 'NEWS_WARNING'
   | 'CONSOLIDATION'
@@ -77,6 +78,7 @@ export interface WSMessage {
   timestamp: string
   price?: number
   candle?: Candle
+  candles?: Candle[]
   consolidation_zone?: ConsolidationZone
   key_level_triggered?: KeyLevelTriggered
   news_warning?: NewsWarning

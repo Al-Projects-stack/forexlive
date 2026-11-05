@@ -51,6 +51,7 @@ export const PriceChart = ({
   const priceLinesRef = useRef<IPriceLine[]>([])
   const zoneSeriesRef = useRef<ISeriesApi<'Line'>[]>([])
   const structureLineRef = useRef<IPriceLine | null>(null)
+  const hasFramedRef = useRef(false)
 
   // Initialise chart once
   useEffect(() => {
@@ -70,7 +71,13 @@ export const PriceChart = ({
         horzLine: { color: '#4b5563', width: 1, style: LineStyle.Dashed },
       },
       rightPriceScale: { borderColor: '#1f2937' },
-      timeScale: { borderColor: '#1f2937', timeVisible: true, secondsVisible: false },
+      timeScale: {
+        borderColor: '#1f2937',
+        timeVisible: true,
+        secondsVisible: false,
+        barSpacing: 8,
+        rightOffset: 6,
+      },
       width: containerRef.current.clientWidth,
       height: containerRef.current.clientHeight,
     })
@@ -123,6 +130,11 @@ export const PriceChart = ({
     }
   }, [])
 
+  // Re-frame once when switching pairs (chart stays mounted across pair changes)
+  useEffect(() => {
+    hasFramedRef.current = false
+  }, [_pair])
+
   // Update candles
   useEffect(() => {
     if (!candleSeriesRef.current || candles.length === 0) return
@@ -140,7 +152,13 @@ export const PriceChart = ({
 
     if (data.length > 0) {
       candleSeriesRef.current.setData(data)
-      chartRef.current?.timeScale().fitContent()
+      // Fixed bar spacing (set on the time scale) keeps candles a natural width
+      // whether there are 2 or 100 of them, instead of fitContent() stretching a
+      // handful of bars across the whole pane. Frame the full set once on first load.
+      if (!hasFramedRef.current && data.length >= 5) {
+        chartRef.current?.timeScale().fitContent()
+        hasFramedRef.current = true
+      }
     }
   }, [candles])
 
@@ -210,6 +228,8 @@ export const PriceChart = ({
     if (!first.timestamp || !last.timestamp) return
     const startTime = toUnixTime(first.timestamp)
     const endTime = toUnixTime(last.timestamp)
+    // lightweight-charts rejects duplicate/non-ascending times
+    if ((startTime as number) >= (endTime as number)) return
 
     const drawZone = (top: number, bottom: number, color: string) => {
       const topSeries = chart.addLineSeries({

@@ -30,6 +30,41 @@ stream = TwelveDataStream()
 limiter = Limiter(key_func=get_remote_address)
 
 
+def _candle_to_dict(candle) -> dict:
+    return {
+        "open": candle.open,
+        "high": candle.high,
+        "low": candle.low,
+        "close": candle.close,
+        "volume": candle.volume,
+        "timestamp": candle.timestamp.isoformat() if candle.timestamp else None,
+    }
+
+
+def build_candle_snapshot(pair: str) -> dict:
+    """Initial state for a newly-connected client: full candle history plus the
+    current consolidation and smart-money analysis, so the chart renders complete
+    on load instead of accumulating one candle per minute."""
+    candles = stream.aggregator.get_candles(pair)
+    current_candle = stream.aggregator.get_current_candle(pair)
+    history = [_candle_to_dict(c) for c in candles]
+    if current_candle:
+        history.append(_candle_to_dict(current_candle))
+
+    consolidation_zone = get_consolidation_zone(candles)
+    smart_money_zones = analyze_smart_money(candles)
+    return {
+        "candles": history,
+        "consolidation_zone": {
+            "active": consolidation_zone.active,
+            "upper": consolidation_zone.upper,
+            "lower": consolidation_zone.lower,
+            "midpoint": consolidation_zone.midpoint,
+        },
+        "smart_money": smart_money_zones.model_dump(mode="json"),
+    }
+
+
 async def on_tick(pair: str, price: float, timestamp: datetime):
     """Called by TwelveDataStream on every tick. Builds WS message and broadcasts."""
     candles = stream.aggregator.get_candles(pair)
@@ -121,6 +156,7 @@ async def on_tick(pair: str, price: float, timestamp: datetime):
 async def lifespan(app: FastAPI):
     await init_db()
     logger.info("Database initialised")
+    manager.snapshot_provider = build_candle_snapshot
     stream.on_tick(on_tick)
     task = asyncio.create_task(stream.start())
     logger.info("TwelveData stream started")

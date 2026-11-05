@@ -2,6 +2,8 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 
+from typing import Callable, Optional
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from starlette.websockets import WebSocketState
 
@@ -18,6 +20,10 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: dict[str, list[WebSocket]] = {p: [] for p in ALLOWED_PAIRS}
         self._lock = asyncio.Lock()
+        # Set at startup by main.py — returns an initial CANDLE_HISTORY payload
+        # for a pair so a newly-connected client's chart is populated immediately
+        # instead of rebuilding one candle per minute from live ticks.
+        self.snapshot_provider: Optional[Callable[[str], dict]] = None
 
     async def connect(self, websocket: WebSocket, pair: str):
         await websocket.accept()
@@ -76,6 +82,20 @@ async def websocket_endpoint(websocket: WebSocket, pair: str):
             "pair": pair,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
+        # Backfill the chart with any candle history we've already aggregated,
+        # so it renders fully on load rather than growing one candle at a time.
+        if manager.snapshot_provider is not None:
+            try:
+                snapshot = manager.snapshot_provider(pair)
+                if snapshot and snapshot.get("candles"):
+                    await websocket.send_json({
+                        "type": "CANDLE_HISTORY",
+                        "pair": pair,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        **snapshot,
+                    })
+            except Exception as e:
+                logger.error(f"Snapshot send failed for {pair}: {e}")
         # Keep connection alive — data comes via broadcast from TwelveDataStream
         while True:
             try:

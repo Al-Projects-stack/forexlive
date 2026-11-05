@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X } from '@phosphor-icons/react'
 import { Alert, Pair } from '../types'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
@@ -57,7 +58,9 @@ export const AlertPanel = ({ pair, alerts, onAlertAdded, onAlertRemoved }: Alert
 
       <div className="flex flex-col gap-2">
         <div className="flex gap-2">
+          <label htmlFor="alert-level" className="sr-only">Price level</label>
           <input
+            id="alert-level"
             type="number"
             step="0.001"
             value={level}
@@ -65,7 +68,9 @@ export const AlertPanel = ({ pair, alerts, onAlertAdded, onAlertRemoved }: Alert
             placeholder="Price level"
             className="flex-1 bg-terminal-bg border border-terminal-border text-gray-200 text-xs font-mono px-2 py-1.5 rounded focus:outline-none focus:border-blue-500"
           />
+          <label htmlFor="alert-direction" className="sr-only">Alert direction</label>
           <select
+            id="alert-direction"
             value={direction}
             onChange={(e) => setDirection(e.target.value as 'ABOVE' | 'BELOW' | 'EITHER')}
             className="bg-terminal-bg border border-terminal-border text-gray-200 text-xs px-2 py-1.5 rounded focus:outline-none focus:border-blue-500"
@@ -101,9 +106,10 @@ export const AlertPanel = ({ pair, alerts, onAlertAdded, onAlertRemoved }: Alert
             </div>
             <button
               onClick={() => handleRemove(a.id)}
-              className="text-gray-600 hover:text-red-400 text-xs transition-colors"
+              aria-label={`Remove alert at ${a.level.toFixed(pair === 'USD/JPY' ? 3 : 5)}`}
+              className="p-1 -m-1 text-gray-600 hover:text-red-400 transition-colors"
             >
-              ✕
+              <X size={14} weight="bold" aria-hidden="true" />
             </button>
           </div>
         ))}

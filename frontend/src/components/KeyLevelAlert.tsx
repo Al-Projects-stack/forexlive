@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import toast from 'react-hot-toast'
+import { Target, Lightning } from '@phosphor-icons/react'
 import { WSMessage, Pair } from '../types'
 
 interface KeyLevelAlertProps {
@@ -25,7 +26,7 @@ export const KeyLevelAlert = ({ lastMessage, pair }: KeyLevelAlertProps) => {
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: '13px',
           },
-          icon: '🎯',
+          icon: <Target size={18} weight="bold" color="#93c5fd" aria-hidden="true" />,
         }
       )
     }
@@ -44,7 +45,7 @@ export const KeyLevelAlert = ({ lastMessage, pair }: KeyLevelAlertProps) => {
               fontFamily: 'JetBrains Mono, monospace',
               fontSize: '13px',
             },
-            icon: '⚡',
+            icon: <Lightning size={18} weight="bold" color="#fca5a5" aria-hidden="true" />,
           }
         )
       }

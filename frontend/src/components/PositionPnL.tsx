@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { X } from '@phosphor-icons/react'
 import { Pair, PositionEntry, PAIRS } from '../types'
 
 const STORAGE_KEY = 'forexlive_positions'
@@ -70,7 +71,9 @@ export const PositionPnL = ({ currentPrice, activePair }: PositionPnLProps) => {
 
       <div className="flex flex-col gap-2">
         <div className="flex gap-2">
+          <label htmlFor="position-pair" className="sr-only">Pair</label>
           <select
+            id="position-pair"
             value={pair}
             onChange={(e) => setPair(e.target.value as Pair)}
             className="flex-1 bg-terminal-bg border border-terminal-border text-gray-200 text-xs px-2 py-1.5 rounded focus:outline-none focus:border-blue-500"
@@ -79,7 +82,9 @@ export const PositionPnL = ({ currentPrice, activePair }: PositionPnLProps) => {
               <option key={p} value={p}>{p}</option>
             ))}
           </select>
+          <label htmlFor="position-direction" className="sr-only">Direction</label>
           <select
+            id="position-direction"
             value={direction}
             onChange={(e) => setDirection(e.target.value as 'LONG' | 'SHORT')}
             className="bg-terminal-bg border border-terminal-border text-gray-200 text-xs px-2 py-1.5 rounded focus:outline-none focus:border-blue-500"
@@ -89,7 +94,9 @@ export const PositionPnL = ({ currentPrice, activePair }: PositionPnLProps) => {
           </select>
         </div>
         <div className="flex gap-2">
+          <label htmlFor="position-entry" className="sr-only">Entry price</label>
           <input
+            id="position-entry"
             type="number"
             step="0.00001"
             value={entryPrice}
@@ -97,7 +104,9 @@ export const PositionPnL = ({ currentPrice, activePair }: PositionPnLProps) => {
             placeholder="Entry price"
             className="flex-1 bg-terminal-bg border border-terminal-border text-gray-200 text-xs font-mono px-2 py-1.5 rounded focus:outline-none focus:border-blue-500"
           />
+          <label htmlFor="position-qty" className="sr-only">Quantity</label>
           <input
+            id="position-qty"
             type="number"
             step="any"
             value={quantity}
@@ -159,9 +168,10 @@ export const PositionPnL = ({ currentPrice, activePair }: PositionPnLProps) => {
               </div>
               <button
                 onClick={() => handleRemove(pos.id)}
-                className="text-gray-600 hover:text-red-400 text-xs transition-colors shrink-0"
+                aria-label={`Remove ${pos.direction.toLowerCase()} ${pos.pair} position`}
+                className="p-1 -m-1 text-gray-600 hover:text-red-400 transition-colors shrink-0"
               >
-                ✕
+                <X size={14} weight="bold" aria-hidden="true" />
               </button>
             </div>
           )

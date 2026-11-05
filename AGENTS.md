@@ -39,4 +39,4 @@ Requests permission once on first mount and caches the result in localStorage.
 
 ## Observed Issues
 
-1. **`.env` contains a live Twelve Data API key** — should be gitignored; currently tracked and pushed.
+_None currently open._ (Previous note about `.env` being tracked was stale — it's gitignored and was never committed to history.)

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import httpx
 import pytest
@@ -21,9 +21,10 @@ RAW = [
 
 
 @pytest.fixture(autouse=True)
-def empty_cache(monkeypatch):
+def empty_cache(monkeypatch, tmp_path):
     monkeypatch.setattr(nc, "_cache", [])
     monkeypatch.setattr(nc, "_fetched_at", None)
+    monkeypatch.setattr(nc, "CACHE_PATH", tmp_path / "calendar.json")
 
 
 def test_parse_filters_and_converts_to_utc():
@@ -86,3 +87,24 @@ def test_imminent_high_impact_only():
     # ZEW is MEDIUM: never a news warning
     assert nc.get_imminent_high_impact_event(now=datetime(2026, 11, 10, 9, 57, tzinfo=timezone.utc)) is None
     assert nc.get_imminent_high_impact_event(now=datetime(2026, 11, 10, 13, 20, tzinfo=timezone.utc)) is None
+
+
+@pytest.mark.asyncio
+async def test_disk_cache_survives_restart():
+    async with _client(lambda req: httpx.Response(200, json=RAW)) as client:
+        assert await nc.refresh(client)
+    assert nc.CACHE_PATH.exists()
+    nc._cache, nc._fetched_at = [], None  # simulate a fresh process
+    assert nc.load_disk_cache()
+    assert [e["name"] for e in nc._cache] == ["German ZEW Economic Sentiment", "CPI m/m"]
+
+
+@pytest.mark.asyncio
+async def test_stale_or_corrupt_disk_cache_is_ignored():
+    async with _client(lambda req: httpx.Response(200, json=RAW)) as client:
+        await nc.refresh(client)
+    nc._cache, nc._fetched_at = [], None
+    assert not nc.load_disk_cache(now=datetime.now(timezone.utc) + nc.DISK_CACHE_MAX_AGE + timedelta(minutes=1))
+    nc.CACHE_PATH.write_text("{not json", encoding="utf-8")
+    assert not nc.load_disk_cache()
+    assert nc._cache == []

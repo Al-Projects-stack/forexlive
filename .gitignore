@@ -6,6 +6,7 @@
 
 # Python
 *.db
+.calendar_cache.json
 __pycache__/
 *.py[cod]
 *.pyo

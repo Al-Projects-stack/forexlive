@@ -4,10 +4,15 @@ Economic calendar. Real events come from ForexFactory's public weekly feed
 trade. If the feed has never loaded, a static estimate of the usual weekly
 releases is served instead and every event is marked source="fallback" so the
 UI can say so.
+
+The feed rate-limits (429) aggressively, so the last good response is kept on
+disk and reused across restarts instead of refetching on every boot.
 """
 import asyncio
+import json
 import logging
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Optional
 
 import httpx
@@ -19,6 +24,9 @@ logger = logging.getLogger(__name__)
 FF_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
 USER_AGENT = "ForexLive/1.0 (+https://github.com/Al-Projects-stack/forexlive)"
 REFRESH_SECONDS = 30 * 60
+RETRY_SECONDS = 5 * 60
+DISK_CACHE_MAX_AGE = timedelta(hours=24)
+CACHE_PATH = Path(__file__).resolve().parents[2] / ".calendar_cache.json"
 # Keep a released event on the list briefly so "LIVE" is visible around the print
 SHOW_PAST_MINUTES = 15
 
@@ -87,6 +95,7 @@ async def refresh(client: Optional[httpx.AsyncClient] = None) -> bool:
             return False
         _cache, _fetched_at = events, datetime.now(timezone.utc)
         logger.info("Calendar refreshed: %d events from ForexFactory", len(events))
+        _write_disk_cache(resp.json(), _fetched_at)
         return True
     except Exception as e:
         logger.warning("Calendar refresh failed, keeping previous data: %s", e)
@@ -96,10 +105,40 @@ async def refresh(client: Optional[httpx.AsyncClient] = None) -> bool:
             await client.aclose()
 
 
-async def run_refresher(interval: int = REFRESH_SECONDS) -> None:
+def _write_disk_cache(raw, fetched_at: datetime) -> None:
+    try:
+        CACHE_PATH.write_text(json.dumps({"fetched_at": fetched_at.isoformat(), "events": raw}), encoding="utf-8")
+    except OSError as e:
+        logger.warning("Could not write calendar cache: %s", e)
+
+
+def load_disk_cache(now: Optional[datetime] = None) -> bool:
+    """Restore the last good feed if it's recent enough. Returns True if loaded."""
+    global _cache, _fetched_at
+    now = now or datetime.now(timezone.utc)
+    try:
+        data = json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+        fetched_at = datetime.fromisoformat(data["fetched_at"])
+        events = parse_ff_events(data["events"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+    if not events or now - fetched_at > DISK_CACHE_MAX_AGE:
+        return False
+    _cache, _fetched_at = events, fetched_at
+    logger.info("Calendar restored from disk: %d events fetched %s", len(events), fetched_at.isoformat())
+    return True
+
+
+async def run_refresher() -> None:
+    load_disk_cache()
     while True:
-        await refresh()
-        await asyncio.sleep(interval)
+        if _fetched_at is not None:
+            age = (datetime.now(timezone.utc) - _fetched_at).total_seconds()
+            if age < REFRESH_SECONDS:
+                await asyncio.sleep(REFRESH_SECONDS - age)
+                continue
+        ok = await refresh()
+        await asyncio.sleep(REFRESH_SECONDS if ok else RETRY_SECONDS)
 
 
 def _fallback_events(now: datetime) -> list[dict]:

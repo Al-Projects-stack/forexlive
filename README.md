@@ -1,6 +1,8 @@
 # ForexLive
 
+![ForexLive promo reel](docs/promo/promo.gif)
 
+<sub>45-second promo reel. Sharper version: [docs/promo/promo.mp4](docs/promo/promo.mp4)</sub>
 
 Real-time forex trading dashboard for currency pairs. Streams live tick data via WebSockets, detects consolidation zones automatically, fires instant browser alerts when price touches key levels, and shows upcoming high-impact news events with live countdowns.
 
@@ -18,6 +20,10 @@ Built by a trader who trades USD/JPY and understands consolidation setups not a 
 | **News Calendar** | Next 5 high-impact events with live countdown + red banner when event is live |
 | **Session Indicator** | Tokyo / London / New York / Overlap in SAST overlap highlighted (highest liquidity) |
 | **Live Ticker** | Scrolling bid/ask bar for all 4 pairs, green/red on direction |
+| **Smart Money Concepts** | Order blocks, fair value gaps, liquidity sweeps and BOS/CHoCH detected from the candles and drawn on the chart, with a show/hide toggle |
+| **AI Trade Review** | Claude reviews an open position against your alerts, the chart structure and the news calendar (needs `ANTHROPIC_API_KEY`) |
+| **Position P&L** | Track long and short positions per pair with live floating P&L |
+| **Desktop Notifications** | OS notifications for key levels and high-impact news when the tab is in the background |
 
 ---
 
@@ -76,11 +82,14 @@ Threshold of 0.15% is tuned for G30 behaviour. When consolidation is active, a s
 ### Run locally
 
 ```bash
-git clone https://github.com/your-username/forexlive.git
+git clone https://github.com/Al-Projects-stack/forexlive.git
 cd forexlive
 
 # Add your API key
 echo "TWELVE_DATA_API_KEY=your_key_here" > .env
+
+# Optional: enables the AI Trade Review
+echo "ANTHROPIC_API_KEY=your_key_here" >> .env
 
 # Start everything
 docker-compose up --build
@@ -115,8 +124,11 @@ GET  /api/v1/news                   Next 5 high-impact events
 GET  /api/v1/alerts?pair=USD/JPY   List active key level alerts
 POST /api/v1/alerts                 Create alert { pair, level, direction }
 DELETE /api/v1/alerts/{id}          Remove alert
+POST /api/v1/trade-review           AI review { pair, direction, entry_price, exit_price, quantity, pnl }
+GET  /api/v1/trade-review/status    Whether the AI review is configured
 
 WS   /ws/{pair}                     Real-time stream (e.g. /ws/USD%2FJPY)
+                                    Sends CANDLE_HISTORY on connect, then live updates
 ```
 
 ---
@@ -137,6 +149,8 @@ forexlive/
 │   │   │   ├── twelve_data.py   Twelve Data WS client + CandleAggregator
 │   │   │   ├── consolidation.py Consolidation zone detection
 │   │   │   ├── key_levels.py    Alert persistence + trigger logic
+│   │   │   ├── smart_money.py   Order blocks, FVGs, sweeps, BOS/CHoCH
+│   │   │   ├── trade_review.py  Claude trade review + context assembly
 │   │   │   └── news_calendar.py Upcoming high-impact events
 │   │   ├── models/schemas.py    Pydantic request/response models
 │   │   └── db/                  SQLAlchemy engine + ORM models
@@ -147,8 +161,18 @@ forexlive/
 │       ├── hooks/               useWebSocket, useChartData
 │       ├── pages/Dashboard.tsx  Main layout
 │       └── types/index.ts       Shared TypeScript types
+├── docs/promo/                  Promo reel (GIF, MP4, HTML source, export scripts)
 ├── docker-compose.yml
 └── .github/workflows/deploy.yml
+```
+
+### Regenerating the promo reel
+
+`docs/promo/promo.html` is the source. Opened with `#capture` it exposes a frame-exact seek hook, so the export is deterministic. Needs Playwright with Chrome installed and Pillow.
+
+```bash
+python docs/promo/capture_frames.py docs/promo/promo.html frames 12
+python docs/promo/make_gif.py frames docs/promo/promo.gif 720 12 128
 ```
 
 ---

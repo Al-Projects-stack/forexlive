@@ -1,0 +1,703 @@
+<title>ForexLive Promo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Broadcast reel: a 16:9 stage scaled by container units, eight scenes on a JS clock,
+     an ink wipe with an amber edge between scenes, a ticker tape running underneath. */
+  :root{
+    --ink:#06080e; --ink-2:#0b1020; --panel:#0e1426; --line:#1c2540; --line-2:#2a3554;
+    --text:#eef1f7; --mute:#8d97ab; --dim:#58627a;
+    --amber:#ffb020; --up:#2fd480; --down:#ff5c63; --cyan:#4cc9f0;
+    --disp:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+    --sans:"IBM Plex Sans",system-ui,"Segoe UI",sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--text); font-family:var(--sans);
+    background:radial-gradient(900px 500px at 50% -5%,#151a2e 0%,transparent 70%),var(--ink);
+    padding-block:clamp(16px,4vh,44px);
+    padding-left:max(16px,env(safe-area-inset-left,0px));
+    padding-right:max(16px,env(safe-area-inset-right,0px));
+  }
+  .wrap{max-width:1000px; margin:0 auto; display:flex; flex-direction:column; gap:14px}
+
+  .frame{
+    position:relative; width:100%; max-width:100%; aspect-ratio:16/9; overflow:hidden; isolation:isolate;
+    border-radius:12px; border:1px solid var(--line); cursor:pointer; container-type:size;
+    background:linear-gradient(160deg,#0c1224 0%,#070a13 55%,#0a0d17 100%);
+  }
+  .grid{position:absolute; inset:0; z-index:0;
+    background-image:linear-gradient(rgba(141,151,171,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(141,151,171,.06) 1px,transparent 1px);
+    background-size:6.25% 11.11%;
+    -webkit-mask-image:radial-gradient(ellipse at 50% 45%,#000 40%,transparent 85%);
+    mask-image:radial-gradient(ellipse at 50% 45%,#000 40%,transparent 85%)}
+  .glow{position:absolute; inset:-20%; z-index:0;
+    background:radial-gradient(40% 35% at 70% 30%,rgba(255,176,32,.10),transparent 70%),
+               radial-gradient(35% 30% at 20% 80%,rgba(76,201,240,.07),transparent 70%);
+    animation:drift 16s ease-in-out infinite alternate}
+  @keyframes drift{to{transform:translate(5%,-4%)}}
+
+  .stage{position:absolute; inset:0; z-index:2; font-size:clamp(8px,2.3cqw,21px)}
+  .scene{position:absolute; inset:0; padding:10.5% 6% 13.5%; display:flex; flex-direction:column;
+    justify-content:center; gap:.9em; opacity:0; visibility:hidden}
+  .scene.on{opacity:1; visibility:visible}
+
+  /* shared motion */
+  .r{opacity:0; transform:translateY(.55em)}
+  .scene.on .r{animation:rise .6s cubic-bezier(.2,.8,.2,1) both; animation-delay:var(--d,.45s)}
+  @keyframes rise{to{opacity:1; transform:none}}
+  @keyframes fadein{to{opacity:1}}
+  @keyframes sx{to{transform:scaleX(1)}}
+  @keyframes blink{50%{opacity:0}}
+
+  /* kinetic titles */
+  .hd{display:flex; flex-direction:column; gap:.35em}
+  .ttl{margin:0; font-family:var(--disp); font-weight:900; font-size:3.6em; line-height:.82;
+    letter-spacing:.01em; text-transform:uppercase; display:flex}
+  .ttl .k{display:inline-block; overflow:hidden; padding-bottom:.05em}
+  .ttl .k>span{display:inline-block; transform:translateY(108%)}
+  .scene.on .ttl .k>span{animation:up .62s cubic-bezier(.2,.9,.2,1) both; animation-delay:calc(var(--i)*45ms)}
+  @keyframes up{to{transform:none}}
+  .ul{height:3px; width:3.4em; background:var(--amber); transform-origin:0 50%; transform:scaleX(0)}
+  .scene.on .ul{animation:sx .6s .3s cubic-bezier(.2,.9,.2,1) both}
+  .sub{margin:0; font-size:.8em; line-height:1.5; color:var(--mute); max-width:32em}
+
+  /* scene 1 */
+  .open{align-items:center; text-align:center; gap:.6em}
+  .flick{font-family:var(--mono); font-weight:600; font-size:3.6em; color:var(--amber);
+    font-variant-numeric:tabular-nums; text-shadow:0 0 .4em rgba(255,176,32,.45)}
+  .wm{font-family:var(--disp); font-weight:900; font-size:6.6em; line-height:.84; letter-spacing:.015em}
+  .wm .lv{color:var(--amber)}
+  .tagl{font-family:var(--mono); font-size:.68em; letter-spacing:.32em; text-transform:uppercase; color:var(--mute)}
+
+  /* scene 2 */
+  .bgchart{position:absolute; left:0; right:0; top:34%; bottom:14%; z-index:0; opacity:.6}
+  .lgrid{position:relative; z-index:2; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:2em; align-items:center}
+  .lgrid .ttl{font-size:5.4em}
+  .lgrid .col{display:flex; flex-direction:column; gap:.9em}
+  .px{background:rgba(11,16,32,.78); border:1px solid var(--line-2); border-radius:10px; padding:1em 1.15em;
+    display:flex; flex-direction:column; gap:.55em; backdrop-filter:blur(4px)}
+  .px .pr{display:flex; justify-content:space-between; font-family:var(--mono); font-size:.66em; color:var(--mute); letter-spacing:.06em}
+  .px .pr .lt{color:var(--up); display:flex; align-items:center; gap:.45em}
+  .px .pr .lt i{width:.5em; height:.5em; border-radius:50%; background:var(--up); animation:blink 1.2s steps(1) infinite}
+  .px .vrow{display:flex; align-items:baseline; gap:.4em}
+  .px .val{font-family:var(--mono); font-weight:600; font-size:2.9em; line-height:1; font-variant-numeric:tabular-nums; transition:color .2s}
+  .px .val.up{color:var(--up)} .px .val.dn{color:var(--down)}
+  .px .ar{font-family:var(--mono); font-size:1em}
+  .ar.u{color:var(--up)} .ar.d{color:var(--down)}
+  .px .ba{display:flex; gap:1.3em; flex-wrap:wrap; font-family:var(--mono); font-size:.6em; color:var(--dim)}
+  .px .ba b{color:var(--text); font-weight:500; font-variant-numeric:tabular-nums}
+
+  /* charts */
+  .chart{position:relative; flex:1; min-height:0; border-radius:10px; border:1px solid var(--line); overflow:hidden;
+    background:linear-gradient(180deg,rgba(11,16,32,.88),rgba(6,8,14,.88))}
+  .cw,.cb{position:absolute; display:block}
+  .cw{width:1px}
+  .cb{border-radius:1px}
+  .grow{opacity:0}
+  .scene.on .grow{animation:grow .4s cubic-bezier(.2,.8,.2,1) both; animation-delay:var(--d)}
+  @keyframes grow{from{opacity:0; transform:scaleY(.04)}to{opacity:1; transform:none}}
+  .dim .cw,.dim .cb{filter:opacity(.32)}
+  .lab{position:absolute; z-index:5; font-family:var(--mono); font-size:.5em; font-weight:500; letter-spacing:.08em;
+    padding:.18em .5em; border-radius:3px; white-space:nowrap}
+  .pop{opacity:0}
+  .scene.on .pop{animation:popin .35s cubic-bezier(.3,1.6,.5,1) both; animation-delay:var(--d)}
+  @keyframes popin{from{opacity:0; transform:scale(.7)}to{opacity:1; transform:none}}
+  .rail{position:absolute; z-index:3; height:0; top:var(--f); border-top:1.5px solid var(--amber);
+    box-shadow:0 0 .9em rgba(255,176,32,.6); opacity:0}
+  .scene.on .rail{animation:clamp .9s cubic-bezier(.75,0,.2,1) both; animation-delay:var(--d)}
+  @keyframes clamp{0%{top:var(--f); opacity:0}12%{opacity:1}100%{top:var(--t); opacity:1}}
+  .fillz{position:absolute; z-index:2; background:rgba(255,176,32,.11); opacity:0}
+  .scene.on .fillz{animation:fadein .5s both; animation-delay:var(--d)}
+  .zone{position:absolute; z-index:2; border-top:1px dashed; border-bottom:1px dashed; clip-path:inset(0 100% 0 0)}
+  .scene.on .zone{animation:wipein .75s cubic-bezier(.6,0,.2,1) both; animation-delay:var(--d)}
+  @keyframes wipein{to{clip-path:inset(0 0 0 0)}}
+  .hl{position:absolute; z-index:3; left:0; right:0; height:0; border-top:1.5px dashed; transform-origin:0 50%; transform:scaleX(0)}
+  .scene.on .hl{animation:sx .8s cubic-bezier(.6,0,.2,1) both; animation-delay:var(--d)}
+  .fl{position:absolute; z-index:3; left:0; right:0; height:3px; margin-top:-1.5px; opacity:0}
+  .scene.on .fl{animation:flash 1.3s ease-out both; animation-delay:var(--d)}
+  @keyframes flash{0%{opacity:0}8%{opacity:1}100%{opacity:0}}
+  .mk{position:absolute; z-index:5; display:flex; flex-direction:column; align-items:center; gap:.15em;
+    opacity:0; transform:translate(-50%,-100%)}
+  .scene.on .mk{animation:drop .55s cubic-bezier(.3,1.5,.5,1) both; animation-delay:var(--d)}
+  @keyframes drop{from{opacity:0; transform:translate(-50%,-190%)}to{opacity:1; transform:translate(-50%,-100%)}}
+  .mk .lab{position:static}
+  .mk .tri{width:0; height:0; border-left:.33em solid transparent; border-right:.33em solid transparent; border-top:.42em solid currentColor}
+  .ring{position:absolute; z-index:5; width:2.4em; height:2.4em; border:1.5px solid; border-radius:50%; opacity:0;
+    transform:translate(-50%,-50%) scale(.2)}
+  .scene.on .ring{animation:ring 1.1s ease-out both; animation-delay:var(--d)}
+  @keyframes ring{0%{opacity:0; transform:translate(-50%,-50%) scale(.2)}15%{opacity:1}100%{opacity:0; transform:translate(-50%,-50%) scale(2.6)}}
+  .pth,.area{position:absolute; inset:0; width:100%; height:100%; z-index:3; overflow:visible}
+  .pth polyline{fill:none; stroke-width:2; stroke-linejoin:round; stroke-linecap:round; stroke-dasharray:1; stroke-dashoffset:1}
+  .scene.on .pth polyline{animation:dash var(--dur) linear both; animation-delay:var(--d)}
+  @keyframes dash{to{stroke-dashoffset:0}}
+  .area{z-index:2; opacity:0}
+  .scene.on .area{animation:fadein 1s both; animation-delay:var(--d)}
+  .pdot{position:absolute; z-index:4; width:.6em; height:.6em; border-radius:50%; transform:translate(-50%,-50%); opacity:0}
+  .scene.on .pdot{animation:fadein .3s both,halo 1.5s ease-out infinite; animation-delay:var(--d),var(--d)}
+  @keyframes halo{0%{box-shadow:0 0 0 0 rgba(255,176,32,.7)}100%{box-shadow:0 0 0 .9em rgba(255,176,32,0)}}
+
+  /* notification */
+  .ntf{position:absolute; right:5%; top:12%; z-index:6; width:min(21em,50%); display:flex; gap:.7em; align-items:flex-start;
+    background:rgba(20,26,44,.95); border:1px solid var(--line-2); border-radius:.8em; padding:.75em .85em;
+    box-shadow:0 1.2em 2.4em -1em #000; opacity:0; transform:translateX(130%)}
+  .scene.on .ntf{animation:slidein .55s cubic-bezier(.2,.9,.25,1.05) both; animation-delay:var(--d)}
+  @keyframes slidein{to{opacity:1; transform:none}}
+  .ntf .ap{flex:none; width:2.2em; height:2.2em; border-radius:.5em; background:var(--amber); color:var(--ink);
+    font-family:var(--disp); font-weight:900; font-size:.8em; display:grid; place-items:center}
+  .ntf .tx{display:flex; flex-direction:column; gap:.2em; font-size:.62em; min-width:0}
+  .ntf .h{display:flex; justify-content:space-between; gap:1em; color:var(--mute)}
+  .ntf .h b{color:var(--text); font-weight:600}
+
+  /* review */
+  .rv{display:grid; grid-template-columns:minmax(0,.78fr) minmax(0,1.3fr); gap:1.2em; align-items:start}
+  .chips{display:flex; flex-direction:column; gap:.5em}
+  .chip{display:flex; flex-direction:column; gap:.2em; font-family:var(--mono); font-size:.58em; color:var(--dim);
+    background:rgba(14,20,38,.65); border:1px solid var(--line-2); border-radius:.5em; padding:.6em .75em;
+    transition:color .35s,border-color .35s,box-shadow .35s,background-color .35s; opacity:0; transform:translateX(-.7em)}
+  .scene.on .chip{animation:slx .5s cubic-bezier(.2,.8,.2,1) both; animation-delay:var(--d)}
+  @keyframes slx{to{opacity:1; transform:none}}
+  .chip .t{letter-spacing:.16em; font-size:.85em}
+  .chip .v{color:var(--mute)}
+  .chip.lit{color:var(--c); border-color:var(--c); background-color:rgba(255,255,255,.04); box-shadow:0 0 1.3em -.35em var(--c)}
+  .chip.lit .v{color:var(--text)}
+  .card{display:flex; flex-direction:column; gap:.55em; background:rgba(14,20,38,.88); border:1px solid var(--line-2);
+    border-radius:.7em; padding:.8em .9em; opacity:0; transform:translateY(.6em)}
+  .scene.on .card{animation:rise .55s cubic-bezier(.2,.8,.2,1) both; animation-delay:var(--d)}
+  .card .top{display:flex; justify-content:space-between; align-items:baseline; gap:1em}
+  .card .pair{font-family:var(--mono); font-size:.72em; font-weight:600}
+  .card .pair i{font-style:normal; color:var(--up); font-size:.85em; margin-left:.5em; letter-spacing:.08em}
+  .card .pnl{font-family:var(--mono); font-weight:600; font-size:1.3em; color:var(--up); font-variant-numeric:tabular-nums}
+  .card .meta{font-family:var(--mono); font-size:.55em; color:var(--dim)}
+  .card .ai{display:flex; gap:.6em; border-top:1px solid var(--line); padding-top:.6em}
+  .card .who{flex:none; font-family:var(--mono); font-size:.5em; letter-spacing:.16em; color:var(--amber); padding-top:.35em}
+  .card .ai p{margin:0; font-size:.66em; line-height:1.55; min-height:6.3em}
+  .cur{display:inline-block; width:.45em; height:1em; margin-left:.1em; vertical-align:-.15em; background:var(--amber);
+    animation:blink 1s steps(1) infinite}
+
+  /* context */
+  .tl{position:relative; display:flex; flex-direction:column; gap:.45em; padding-top:1.7em}
+  .row{display:grid; grid-template-columns:6em minmax(0,1fr); gap:.8em; align-items:center}
+  .row .nm{font-family:var(--mono); font-size:.55em; letter-spacing:.14em; color:var(--mute)}
+  .trk{position:relative; height:1.5em; background:rgba(14,20,38,.7); border-radius:.3em}
+  .band{position:absolute; top:0; bottom:0; border-radius:.3em; transform-origin:0 50%; transform:scaleX(0)}
+  .scene.on .band{animation:sx .7s cubic-bezier(.6,0,.2,1) both; animation-delay:var(--d)}
+  .scene.on .band.hot{animation:sx .7s cubic-bezier(.6,0,.2,1) var(--d) both,hot .5s ease 2.3s both}
+  @keyframes hot{to{box-shadow:0 0 1.4em rgba(255,176,32,.6); filter:brightness(1.25)}}
+  .axis{display:flex; justify-content:space-between; font-family:var(--mono); font-size:.5em; color:var(--dim)}
+  .tlo{position:absolute; left:6.8em; right:0; top:0; bottom:1.1em; pointer-events:none}
+  .ph{position:absolute; top:0; bottom:0; left:0; border-left:1.5px solid var(--text); z-index:4}
+  .scene.on .ph{animation:ph 1.8s cubic-bezier(.5,0,.2,1) .5s both}
+  @keyframes ph{from{left:0}to{left:var(--x)}}
+  .ph .tm{position:absolute; top:-.15em; left:.4em; font-family:var(--mono); font-size:.55em; font-weight:600;
+    white-space:nowrap; color:var(--ink); background:var(--text); padding:.12em .45em; border-radius:3px}
+  .news{position:absolute; top:0; bottom:0; border-left:1.5px dashed var(--down); z-index:3; opacity:0}
+  .scene.on .news{animation:fadein .4s 2.4s both}
+  .news .nl{position:absolute; bottom:-.2em; left:.4em; transform:translateY(100%); display:flex; gap:.5em;
+    font-family:var(--mono); font-size:.55em; color:var(--down); white-space:nowrap}
+  .news .nl b{color:var(--text); font-weight:600; font-variant-numeric:tabular-nums}
+
+  /* end */
+  .end{gap:.75em}
+  .end .wm{font-size:5.6em; position:relative; z-index:2}
+  .end .tagl{position:relative; z-index:2; letter-spacing:.22em}
+  .cred{position:relative; z-index:2; display:flex; gap:1.2em; flex-wrap:wrap; font-family:var(--mono); font-size:.62em; color:var(--mute)}
+  .cred .u{color:var(--amber)}
+
+  /* persistent chrome */
+  .bug{position:absolute; top:3.4%; left:3%; z-index:7; display:flex; align-items:center; gap:.9em;
+    font-family:var(--mono); font-size:clamp(7px,1.1cqw,12px); letter-spacing:.14em; color:var(--mute)}
+  .bug .rec{width:.6em; height:.6em; border-radius:50%; background:var(--down); animation:blink 1.2s steps(1) infinite}
+  .bug b{color:var(--text); font-weight:600}
+  .bug .lb{color:var(--amber)}
+  .tape{position:absolute; left:0; right:0; bottom:3px; height:7.4%; z-index:7; display:flex; align-items:center;
+    overflow:hidden; border-top:1px solid var(--line); background:rgba(6,8,14,.9)}
+  .tape-in{display:flex; width:max-content; animation:tape 34s linear infinite}
+  @keyframes tape{to{transform:translateX(-50%)}}
+  .ti{display:flex; align-items:center; gap:.6em; padding:0 1.3em; white-space:nowrap;
+    font-family:var(--mono); font-size:clamp(7px,1.12cqw,12px); color:var(--mute)}
+  .ti b{color:var(--text); font-weight:500; font-variant-numeric:tabular-nums}
+  .ti::after{content:""; width:.32em; height:.32em; margin-left:1.3em; border-radius:50%; background:var(--amber); opacity:.6}
+  .ti .k{color:var(--amber)}
+
+  .wipe{position:absolute; inset:0; z-index:8; pointer-events:none; transform:translateX(-101%);
+    background:linear-gradient(90deg,var(--ink) 0 97%,var(--amber) 97% 100%)}
+  .wipe.go{animation:wipe .66s cubic-bezier(.7,0,.3,1) both}
+  @keyframes wipe{0%{transform:translateX(-101%)}50%{transform:translateX(0)}100%{transform:translateX(101%)}}
+
+  .bar{position:absolute; left:0; right:0; bottom:0; height:3px; z-index:9; background:rgba(255,255,255,.07)}
+  .fill{height:100%; width:0; background:var(--amber)}
+  .ticks{position:absolute; left:0; right:0; bottom:0; height:3px; z-index:10; display:flex; pointer-events:none}
+  .ticks i{border-right:2px solid var(--ink)}
+  .ticks i:last-child{border:0}
+
+  .ctl{position:absolute; top:.7em; right:.7em; z-index:11; display:flex; gap:.4em; opacity:0; transition:opacity .25s;
+    font-size:clamp(11px,1.6cqw,16px)}
+  .frame:hover .ctl,.frame:focus-within .ctl,.frame.paused .ctl{opacity:1}
+  .ctl button{width:2.2em; height:2.2em; display:grid; place-items:center; cursor:pointer; font-size:inherit;
+    color:var(--text); background:rgba(6,8,14,.75); border:1px solid var(--line-2); border-radius:7px}
+  .ctl button:hover{color:var(--amber); border-color:var(--amber)}
+  .ctl svg{width:1em; height:1em}
+  .playbig{position:absolute; inset:0; z-index:12; display:none; place-items:center; background:rgba(6,8,14,.55)}
+  .frame.needsplay .playbig{display:grid}
+  .playbig button{display:flex; align-items:center; gap:.6em; cursor:pointer; font-family:var(--mono);
+    font-size:clamp(11px,1.6cqw,16px); color:var(--ink); background:var(--amber); border:0; padding:.75em 1.2em; border-radius:9px; font-weight:600}
+  .playbig svg{width:1.1em; height:1.1em; fill:var(--ink)}
+
+  .frame.paused .stage *,.frame.paused .wipe,.frame.paused .tape-in,.frame.paused .glow{animation-play-state:paused!important}
+  .frame.capture{cursor:default}
+  .frame.capture .ctl,.frame.capture .playbig{display:none!important}
+  :focus-visible{outline:2px solid var(--amber); outline-offset:2px}
+
+  .under{display:flex; justify-content:space-between; align-items:baseline; gap:1em; flex-wrap:wrap;
+    font-family:var(--mono); font-size:clamp(11px,1.4vw,13px); color:var(--mute)}
+  .under b{color:var(--text); font-weight:600}
+  .under a{color:var(--amber); text-decoration:none}
+  .under a:hover{text-decoration:underline}
+  .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
+
+  @media (prefers-reduced-motion: reduce){
+    .stage *,.tape-in,.glow,.wipe,.bug .rec{animation:none!important}
+    .ttl .k>span,.grow,.r,.card,.chip,.ntf,.zone,.hl,.mk,.pop,.fillz,.pdot,.area,.ul,.band{opacity:1!important; transform:none!important; clip-path:none!important}
+    .rail{opacity:1!important; top:var(--t)!important}
+    .pth polyline{stroke-dashoffset:0!important}
+    .ring,.fl,.wipe{display:none}
+    .ph{left:var(--x)!important}
+    .news{opacity:1!important}
+  }
+</style>
+
+<div class="wrap">
+  <div class="frame needsplay" id="frame" tabindex="0" role="region" aria-label="ForexLive promo reel. Space pauses, R replays.">
+    <div class="glow"></div>
+    <div class="grid"></div>
+
+    <div class="stage">
+
+      <section class="scene open">
+        <div class="flick" id="flick">1.12274</div>
+        <div class="wm" id="wmOpen" hidden><span data-scr>FOREX</span><span class="lv" data-scr>LIVE</span></div>
+        <div class="tagl" id="tagOpen" style="opacity:0">G30 price-action dashboard</div>
+      </section>
+
+      <section class="scene">
+        <div class="bgchart" data-chart="live"></div>
+        <div class="lgrid">
+          <div class="col">
+            <div class="hd"><h2 class="ttl" data-kin>Live</h2><div class="ul"></div></div>
+            <p class="sub r">EUR/USD streams in over a WebSocket. Each tick reaches the chart as it trades.</p>
+          </div>
+          <div class="px r" style="--d:.3s">
+            <div class="pr"><span>EUR/USD · SPOT</span><span class="lt"><i></i>LIVE</span></div>
+            <div class="vrow"><span class="val up" id="mainPx" data-base="1.12274">1.12274</span><span class="ar u" id="mainAr">▲</span></div>
+            <div class="ba"><span>BID <b id="bid">1.12271</b></span><span>ASK <b id="ask">1.12277</b></span><span>SPREAD <b>0.6</b></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="scene">
+        <div class="hd"><h2 class="ttl" data-kin>Range</h2><div class="ul"></div></div>
+        <div class="chart" data-chart="range"></div>
+        <p class="sub r" style="--d:.5s">When the last 20 candles stay inside 0.15%, ForexLive marks the range on the chart.</p>
+      </section>
+
+      <section class="scene">
+        <div class="hd"><h2 class="ttl" data-kin>Structure</h2><div class="ul"></div></div>
+        <div class="chart" data-chart="structure"></div>
+        <p class="sub r" style="--d:.5s">Order blocks, fair value gaps, liquidity sweeps and breaks of structure, picked out of the candles and drawn as they form.</p>
+      </section>
+
+      <section class="scene">
+        <div class="hd"><h2 class="ttl" data-kin>Levels</h2><div class="ul"></div></div>
+        <div class="chart dim" data-chart="levels"></div>
+        <div class="ntf" id="ntf">
+          <span class="ap">FL</span>
+          <span class="tx"><span class="h"><b>ForexLive</b><span>now</span></span><span>EUR/USD traded through 1.15000</span></span>
+        </div>
+        <p class="sub r" style="--d:.5s">Pick a price and get a desktop notification when it trades, even with the tab in the background.</p>
+      </section>
+
+      <section class="scene">
+        <div class="hd"><h2 class="ttl" data-kin>Review</h2><div class="ul"></div></div>
+        <div class="rv">
+          <div class="chips">
+            <div class="chip" style="--c:var(--amber);--d:.25s" data-key="active range"><span class="t">RANGE</span><span class="v">1.1222 to 1.1229</span></div>
+            <div class="chip" style="--c:var(--down);--d:.35s" data-key="UK GDP"><span class="t">NEWS</span><span class="v">UK GDP in 40m</span></div>
+            <div class="chip" style="--c:var(--cyan);--d:.45s" data-key="set an alert"><span class="t">ALERTS</span><span class="v">None on EUR/USD</span></div>
+          </div>
+          <div class="card" style="--d:.15s">
+            <div class="top"><span class="pair">EUR/USD<i>LONG</i></span><span class="pnl" id="pnl">+0.00</span></div>
+            <div class="meta">Entry 1.12048 · Exit 1.12276 · 100k · held 47m</div>
+            <div class="ai"><span class="who">CLAUDE</span><p><span id="type"></span><span class="cur"></span></p></div>
+          </div>
+        </div>
+        <p class="sub r" style="--d:.55s">Close a trade and Claude reviews it against your alerts, the chart structure and the news calendar.</p>
+      </section>
+
+      <section class="scene">
+        <div class="hd"><h2 class="ttl" data-kin>Context</h2><div class="ul"></div></div>
+        <div class="tl">
+          <div class="row"><span class="nm">TOKYO</span><div class="trk"><i class="band" style="left:4.17%;width:33.33%;background:rgba(76,201,240,.55);--d:.15s"></i></div></div>
+          <div class="row"><span class="nm">LONDON</span><div class="trk"><i class="band hot" style="left:41.67%;width:33.33%;background:rgba(255,176,32,.8);--d:.25s"></i></div></div>
+          <div class="row"><span class="nm">NEW YORK</span><div class="trk"><i class="band" style="left:62.5%;width:33.33%;background:rgba(167,139,250,.6);--d:.35s"></i></div></div>
+          <div class="row"><span></span><div class="axis"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div></div>
+          <div class="tlo">
+            <div class="ph" style="--x:54.7%"><span class="tm">13:08 SAST</span></div>
+            <div class="news" style="left:57.5%"><span class="nl">UK GDP <b id="cd">00:40:00</b></span></div>
+          </div>
+        </div>
+        <p class="sub r" style="--d:.6s">Sessions and news releases on one clock, in SAST.</p>
+      </section>
+
+      <section class="scene end">
+        <div class="bgchart" data-chart="end"></div>
+        <div class="wm" id="wmEnd"><span data-scr>FOREX</span><span class="lv" data-scr>LIVE</span></div>
+        <div class="tagl r" style="--d:.7s">Live G30 dashboard for price-action traders</div>
+        <div class="cred r" style="--d:.95s"><span>Built by Al Mujati</span><span class="u">github.com/Al-Projects-stack/forexlive</span></div>
+      </section>
+
+    </div>
+
+    <div class="bug" aria-hidden="true"><span class="rec"></span><b>LIVE</b><span id="ctr">01/08</span><span class="lb" id="lbl">FOREXLIVE</span></div>
+    <div class="tape" aria-hidden="true"><div class="tape-in" id="tape"></div></div>
+    <div class="wipe" id="wipe"></div>
+
+    <div class="ctl">
+      <button id="pp" type="button" aria-label="Pause"><svg viewBox="0 0 16 16" fill="currentColor" id="ppi"></svg></button>
+      <button id="rp" type="button" aria-label="Replay from the start"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2v3h-3"/></svg></button>
+    </div>
+    <div class="playbig"><button id="start" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Play</button></div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="ticks" id="ticks"></div>
+
+    <p class="sr">Promo for ForexLive, a live G30 forex dashboard. It covers live EUR/USD streaming, automatic range detection, a smart money overlay with order blocks, fair value gaps, liquidity sweeps and breaks of structure, desktop alerts on key levels, an AI trade review written by Claude, and a session and news clock in SAST.</p>
+  </div>
+
+  <div class="under">
+    <span><b>ForexLive</b> · promo reel</span>
+    <a href="https://github.com/Al-Projects-stack/forexlive" target="_blank" rel="noopener">github.com/Al-Projects-stack/forexlive</a>
+  </div>
+</div>
+
+<script>
+"use strict";
+function $(s){ return document.querySelector(s); }
+var reduce = false;
+try { reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+
+/* kinetic titles: split into masked letters */
+[].forEach.call(document.querySelectorAll("[data-kin]"), function (el) {
+  var t = el.textContent; el.textContent = ""; el.setAttribute("aria-label", t);
+  for (var i = 0; i < t.length; i++) {
+    var k = document.createElement("span"); k.className = "k"; k.setAttribute("aria-hidden", "true");
+    var s = document.createElement("span"); s.style.setProperty("--i", i); s.textContent = t[i];
+    k.appendChild(s); el.appendChild(k);
+  }
+});
+[].forEach.call(document.querySelectorAll("[data-scr]"), function (s) { s.setAttribute("data-f", s.textContent); });
+
+/* scramble-decode: p from 0 to 1 */
+var GLY = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789";
+function scr(root, p) {
+  p = Math.max(0, Math.min(1, p));
+  var parts = root.querySelectorAll("[data-scr]"), total = 0, idx = 0;
+  [].forEach.call(parts, function (s) { total += s.getAttribute("data-f").length; });
+  var reveal = p * total;
+  [].forEach.call(parts, function (s) {
+    var f = s.getAttribute("data-f"), out = "";
+    for (var i = 0; i < f.length; i++, idx++) out += (p >= 1 || idx < reveal) ? f[i] : GLY[(Math.random() * GLY.length) | 0];
+    s.textContent = out;
+  });
+}
+
+/* deterministic candles */
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gen(seed, n, start, vol, drift) {
+  var r = rng(seed), c = start, out = [];
+  for (var i = 0; i < n; i++) {
+    var o = c; c = o + (r() - 0.5) * vol + drift;
+    out.push({ o: o, c: c, h: Math.max(o, c) + r() * vol * 0.55, l: Math.min(o, c) - r() * vol * 0.55 });
+  }
+  return out;
+}
+function bounds(cs, pad) {
+  var lo = 1e9, hi = -1e9;
+  cs.forEach(function (k) { lo = Math.min(lo, k.l); hi = Math.max(hi, k.h); });
+  var p = (hi - lo) * pad; return { lo: lo - p, hi: hi + p };
+}
+
+/* chart renderer */
+var uid = 0;
+function render(el, cs, o) {
+  var W = el.clientWidth || 900, H = el.clientHeight || 360, n = cs.length, b = o.b, sp = b.hi - b.lo, h = "";
+  function y(p) { return (b.hi - p) / sp * 100; }
+  function x(i) { return (i + 0.5) / n * 100; }
+  if (o.candles !== false) {
+    var cw = 100 / n * 0.58;
+    for (var i = 0; i < n; i++) {
+      var k = cs[i], up = k.c >= k.o, col = up ? "var(--up)" : "var(--down)", org = up ? "50% 100%" : "50% 0%";
+      var d = ((o.base || 0) + i * (o.step || 0.03)).toFixed(3) + "s";
+      var bt = y(Math.max(k.o, k.c)), bh = Math.max(0.6, y(Math.min(k.o, k.c)) - bt), wt = y(k.h), wh = y(k.l) - wt;
+      h += '<i class="cw grow" style="left:' + x(i) + '%;top:' + wt + '%;height:' + wh + '%;background:' + col + ';transform-origin:' + org + ';--d:' + d + '"></i>';
+      h += '<i class="cb grow" style="left:' + (x(i) - cw / 2) + '%;width:' + cw + '%;top:' + bt + '%;height:' + bh + '%;background:' + col + ';transform-origin:' + org + ';--d:' + d + '"></i>';
+    }
+  }
+  (o.ov || []).forEach(function (v) {
+    var L, T, B, Y;
+    if (v.k === "rails") {
+      L = v.i0 / n * 100; T = y(v.p1); B = y(v.p0);
+      h += '<div class="fillz" style="left:' + L + '%;right:0;top:' + T + '%;height:' + (B - T) + '%;--d:' + (v.d + 0.75) + 's"></div>';
+      h += '<div class="rail" style="left:' + L + '%;right:0;--f:0%;--t:' + T + '%;--d:' + v.d + 's"></div>';
+      h += '<div class="rail" style="left:' + L + '%;right:0;--f:100%;--t:' + B + '%;--d:' + v.d + 's"></div>';
+      h += '<span class="lab pop" style="left:calc(' + L + '% + .6em);top:calc(' + T + '% - 1.9em);color:var(--ink);background:var(--amber);--d:' + (v.d + 0.85) + 's">' + v.label + '</span>';
+    } else if (v.k === "zone") {
+      L = v.i0 / n * 100; T = y(v.p1); B = y(v.p0);
+      h += '<div class="zone" style="left:' + L + '%;right:0;top:' + T + '%;height:' + (B - T) + '%;border-color:' + v.c + ';background:' + v.bg + ';--d:' + v.d + 's"><span class="lab" style="left:.4em;top:.3em;color:' + v.c + '">' + v.label + '</span></div>';
+    } else if (v.k === "hline") {
+      Y = y(v.p);
+      h += '<div class="hl" style="top:' + Y + '%;border-color:' + v.c + ';--d:' + v.d + 's"></div>';
+      h += '<span class="lab pop" style="' + (v.left ? 'left:.5em' : 'right:.5em') + ';top:calc(' + Y + '% - .8em);color:' + v.c + ';background:rgba(6,8,14,.92);border:1px solid ' + v.c + ';--d:' + (v.d + 0.5) + 's">' + v.label + '</span>';
+      if (v.fd != null) h += '<div class="fl" style="top:' + Y + '%;background:' + v.c + ';box-shadow:0 0 1.2em ' + v.c + ';--d:' + v.fd + 's"></div>';
+    } else if (v.k === "mk") {
+      h += '<div class="mk" style="left:' + x(v.i) + '%;top:calc(' + y(v.p) + '% - .35em);color:' + v.c + ';--d:' + v.d + 's"><span class="lab" style="color:' + v.c + ';background:rgba(6,8,14,.92);border:1px solid ' + v.c + '">' + v.label + '</span><span class="tri"></span></div>';
+    } else if (v.k === "ring") {
+      h += '<span class="ring" style="left:' + x(v.i) + '%;top:' + y(v.p) + '%;border-color:' + v.c + ';--d:' + v.d + 's"></span>';
+    } else if (v.k === "path") {
+      var pts = cs.map(function (k, i) { return ((i + 0.5) / n * W).toFixed(1) + "," + (y(k.c) / 100 * H).toFixed(1); }).join(" ");
+      if (v.area) {
+        var id = "ga" + (++uid), x0 = (0.5 / n * W).toFixed(1), x1 = ((n - 0.5) / n * W).toFixed(1);
+        h += '<svg class="area" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true" style="--d:' + (v.d + v.dur * 0.5) + 's"><defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + v.hex + '" stop-opacity=".24"/><stop offset="1" stop-color="' + v.hex + '" stop-opacity="0"/></linearGradient></defs><polygon fill="url(#' + id + ')" points="' + pts + ' ' + x1 + ',' + H + ' ' + x0 + ',' + H + '"/></svg>';
+      }
+      h += '<svg class="pth" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true" style="filter:drop-shadow(0 0 5px ' + v.hex + '88)"><polyline points="' + pts + '" pathLength="1" style="stroke:' + v.hex + ';--d:' + v.d + 's;--dur:' + v.dur + 's"/></svg>';
+      var lk = cs[n - 1];
+      h += '<span class="pdot" style="left:' + x(n - 1) + '%;top:' + y(lk.c) + '%;background:' + v.hex + ';--d:' + (v.d + v.dur) + 's"></span>';
+    }
+  });
+  el.innerHTML = h;
+}
+
+/* scene data */
+var LIVE = gen(3, 48, 1.1205, 0.0009, 0.00005);
+var END = gen(17, 48, 1.1180, 0.0011, 0.00009);
+
+var RANGE = gen(11, 32, 1.1190, 0.0016, 0.00012);
+(function () {
+  var mid = RANGE[11].c, prev = mid;
+  for (var i = 12; i < 32; i++) {
+    var c = mid + (((i * 7) % 5) - 2) * 0.00008;
+    RANGE[i] = { o: prev, c: c, h: Math.max(prev, c) + 0.00012 + ((i * 3) % 4) * 0.00004, l: Math.min(prev, c) - 0.00012 - ((i * 5) % 3) * 0.00004 };
+    prev = c;
+  }
+})();
+var RLO = 1e9, RHI = -1e9;
+for (var ri = 12; ri < 32; ri++) { RLO = Math.min(RLO, RANGE[ri].l); RHI = Math.max(RHI, RANGE[ri].h); }
+
+var STR = gen(29, 30, 1.1180, 0.0015, 0.00014);
+
+var LVL = gen(5, 26, 1.1430, 0.0013, 0.0006);
+(function () {
+  var shift = 1.15 - (LVL[19].c + LVL[20].c) / 2;
+  LVL.forEach(function (k) { k.o += shift; k.c += shift; k.h += shift; k.l += shift; });
+})();
+var CROSS_T = 0.9 + 2.6 * (19.5 / 25);
+
+function buildCharts() {
+  var el;
+  if ((el = $('[data-chart="live"]'))) render(el, LIVE, { candles: false, b: bounds(LIVE, 0.15),
+    ov: [{ k: "path", hex: "#ffb020", d: 0.2, dur: 3.2, area: 1 }] });
+  if ((el = $('[data-chart="end"]'))) render(el, END, { candles: false, b: bounds(END, 0.15),
+    ov: [{ k: "path", hex: "#4cc9f0", d: 0.1, dur: 2.6, area: 1 }] });
+  if ((el = $('[data-chart="range"]'))) render(el, RANGE, { b: bounds(RANGE, 0.14), step: 0.025,
+    ov: [{ k: "rails", i0: 12, p0: RLO - 0.00004, p1: RHI + 0.00004, d: 1.0,
+      label: "RANGE · " + ((RHI - RLO) * 10000).toFixed(1) + " PIPS" }] });
+  if ((el = $('[data-chart="structure"]'))) {
+    var b = bounds(STR, 0.12), sp = b.hi - b.lo;
+    var P = function (f) { return b.lo + f * sp; };
+    render(el, STR, { b: b, step: 0.03, ov: [
+      { k: "zone", i0: 9, p0: P(0.30), p1: P(0.38), c: "var(--up)", bg: "rgba(47,212,128,.10)", label: "ORDER BLOCK", d: 1.0 },
+      { k: "zone", i0: 13, p0: P(0.50), p1: P(0.60), c: "var(--cyan)", bg: "rgba(76,201,240,.10)", label: "FVG", d: 1.35 },
+      { k: "hline", p: P(0.74), c: "var(--amber)", label: "BOS", d: 1.7 },
+      { k: "mk", i: 27, p: STR[27].h, c: "var(--down)", label: "SWEEP", d: 2.15 },
+      { k: "ring", i: 27, p: STR[27].h, c: "var(--down)", d: 2.3 }
+    ] });
+  }
+  if ((el = $('[data-chart="levels"]'))) render(el, LVL, { b: bounds(LVL, 0.14), step: 0.02, ov: [
+    { k: "hline", p: 1.15, c: "var(--cyan)", label: "ALERT 1.15000", d: 0.3, left: 1, fd: CROSS_T },
+    { k: "path", hex: "#ffb020", d: 0.9, dur: 2.6 },
+    { k: "ring", i: 19.5, p: 1.15, c: "var(--cyan)", d: CROSS_T }
+  ] });
+  $("#ntf").style.setProperty("--d", (CROSS_T + 0.2).toFixed(2) + "s");
+}
+buildCharts();
+var rz = null;
+function onResize() { clearTimeout(rz); rz = setTimeout(buildCharts, 180); }
+if (window.ResizeObserver) new ResizeObserver(onResize).observe($("#frame")); else window.addEventListener("resize", onResize);
+
+/* ticker tape */
+var TAPE = [
+  { p: "EUR/USD", v: 1.12274, dp: 5 }, { p: "USD/JPY", v: 149.872, dp: 3 },
+  { p: "GBP/USD", v: 1.26541, dp: 5 }, { p: "USD/ZAR", v: 18.6230, dp: 4 },
+  { p: "SESSION", t: "LONDON" }, { p: "NEXT", t: "UK GDP 40M" }, { p: "EUR/USD", t: "RANGE ACTIVE" }
+];
+function drawTape() {
+  var half = TAPE.map(function (q) {
+    if (q.t) return '<span class="ti"><span class="k">' + q.p + '</span>' + q.t + '</span>';
+    var cls = q.s >= 0 ? "u" : "d", arr = q.s >= 0 ? "▲" : "▼";
+    return '<span class="ti">' + q.p + ' <b>' + q.v.toFixed(q.dp) + '</b><span class="ar ' + cls + '">' + arr + '</span></span>';
+  }).join("");
+  $("#tape").innerHTML = half + half;
+}
+TAPE.forEach(function (q) { q.s = 1; });
+drawTape();
+
+/* price ticks */
+var mainPx = $("#mainPx"), mainAr = $("#mainAr");
+setInterval(function () {
+  if (!playing || reduce) return;
+  TAPE.forEach(function (q) { if (q.t) return; q.s = (Math.random() - 0.5); q.v += q.v * 0.00004 * q.s; });
+  drawTape();
+  var v = parseFloat(mainPx.getAttribute("data-base")), st = Math.random() - 0.5, nv = v + v * 0.00003 * st;
+  mainPx.setAttribute("data-base", nv); mainPx.textContent = nv.toFixed(5);
+  mainPx.className = "val " + (st >= 0 ? "up" : "dn");
+  mainAr.textContent = st >= 0 ? "▲" : "▼"; mainAr.className = "ar " + (st >= 0 ? "u" : "d");
+  $("#bid").textContent = (nv - 0.00003).toFixed(5); $("#ask").textContent = (nv + 0.00003).toFixed(5);
+}, 460);
+
+/* per-scene updates, driven by scene time (freeze when paused) */
+var REVIEW = "You bought into an active range with UK GDP 40 minutes away. Most of the +227 is drift ahead of the release, so it isn't edge. Next time set an alert at the range high, 1.1229, and let the break decide your exit.";
+var chips = [].map.call(document.querySelectorAll("[data-key]"), function (el) {
+  var key = el.getAttribute("data-key"); return { el: el, at: REVIEW.indexOf(key) + key.length };
+});
+function pad2(n) { return (n < 10 ? "0" : "") + n; }
+var flick = $("#flick"), wmOpen = $("#wmOpen"), tagOpen = $("#tagOpen");
+var UPD = [];
+UPD[0] = function (t) {
+  if (!reduce && t < 1.1) {
+    flick.hidden = false; wmOpen.hidden = true; tagOpen.style.opacity = 0;
+    flick.textContent = (1.1205 + Math.random() * 0.004).toFixed(5);
+  } else {
+    flick.hidden = true; wmOpen.hidden = false;
+    scr(wmOpen, reduce ? 1 : (t - 1.1) / 0.8);
+    tagOpen.style.opacity = reduce ? 1 : Math.max(0, Math.min(1, (t - 1.7) / 0.5));
+  }
+};
+UPD[5] = function (t) {
+  var p = reduce ? 1 : Math.max(0, Math.min(1, (t - 0.6) / 0.9));
+  $("#pnl").textContent = "+" + (227.6 * (1 - Math.pow(1 - p, 3))).toFixed(2);
+  var n = reduce ? REVIEW.length : Math.max(0, Math.floor((t - 1.6) * 58));
+  $("#type").textContent = REVIEW.slice(0, n);
+  chips.forEach(function (c) { c.el.classList.toggle("lit", n >= c.at); });
+};
+UPD[6] = function (t) {
+  var s = reduce ? 2400 : 2400 - Math.floor(Math.max(0, t - 2.4) * 140);
+  $("#cd").textContent = pad2(Math.floor(s / 3600)) + ":" + pad2(Math.floor(s / 60) % 60) + ":" + pad2(s % 60);
+};
+UPD[7] = function (t) { scr($("#wmEnd"), reduce ? 1 : (t - 0.15) / 0.8); };
+
+/* timeline */
+var scenes = [].slice.call(document.querySelectorAll(".scene"));
+var LABELS = ["FOREXLIVE", "LIVE", "RANGE", "STRUCTURE", "LEVELS", "REVIEW", "CONTEXT", "FOREXLIVE"];
+var DURS = [4.6, 5.0, 5.2, 5.8, 5.6, 7.4, 5.6, 5.6];
+var cum = [], TOTAL = 0;
+DURS.forEach(function (d) { cum.push(TOTAL); TOTAL += d; });
+DURS.forEach(function (d) { var i = document.createElement("i"); i.style.flex = d; $("#ticks").appendChild(i); });
+
+var frame = $("#frame"), wipe = $("#wipe"), fill = $("#fill");
+var WIPE = reduce ? 0 : 0.33;
+var cur = -1, shown = -1, playing = false, seek = 0, t0 = 0, raf = 0, swapT = null;
+
+function show(i) {
+  scenes.forEach(function (s) { s.classList.remove("on"); });
+  void frame.offsetWidth;
+  scenes[i].classList.add("on"); shown = i;
+  $("#ctr").textContent = pad2(i + 1) + "/" + pad2(scenes.length);
+  $("#lbl").textContent = LABELS[i];
+  if (UPD[i]) UPD[i](0);
+}
+function go(i, instant) {
+  cur = i;
+  if (swapT) { clearTimeout(swapT); swapT = null; }
+  if (instant || !WIPE) { show(i); return; }
+  wipe.classList.remove("go"); void wipe.offsetWidth; wipe.classList.add("go");
+  swapT = setTimeout(function () { swapT = null; show(i); }, WIPE * 1000);
+}
+function tick(now) {
+  if (!playing) return;
+  var el = (now - t0) / 1000 + seek;
+  if (el >= TOTAL) { t0 = now; seek = 0; el = 0; cur = -1; }
+  var idx = 0;
+  for (var k = 0; k < cum.length; k++) if (el >= cum[k]) idx = k;
+  if (idx !== cur) go(idx, false);
+  fill.style.width = (el / TOTAL * 100) + "%";
+  if (shown === idx && UPD[idx]) UPD[idx](Math.max(0, el - cum[idx] - WIPE));
+  raf = requestAnimationFrame(tick);
+}
+var ppi = $("#ppi");
+function setPP(p) {
+  $("#pp").setAttribute("aria-label", p ? "Pause" : "Play");
+  ppi.innerHTML = p ? '<rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/>' : '<path d="M4 2.5v11l9-5.5z"/>';
+}
+function play() {
+  if (playing) return;
+  playing = true; frame.classList.remove("paused", "needsplay"); setPP(true);
+  t0 = performance.now(); raf = requestAnimationFrame(tick);
+}
+function pause() {
+  if (!playing) return;
+  playing = false; frame.classList.add("paused"); setPP(false);
+  seek += (performance.now() - t0) / 1000; cancelAnimationFrame(raf);
+}
+function replay() {
+  if (swapT) { clearTimeout(swapT); swapT = null; }
+  seek = 0; t0 = performance.now(); fill.style.width = "0%";
+  go(0, true);
+  if (!playing) play();
+}
+
+$("#pp").addEventListener("click", function (e) { e.stopPropagation(); playing ? pause() : play(); });
+$("#rp").addEventListener("click", function (e) { e.stopPropagation(); replay(); });
+$("#start").addEventListener("click", function (e) { e.stopPropagation(); play(); });
+frame.addEventListener("click", function (e) {
+  if (e.target.closest(".ctl,.playbig,a")) return;
+  playing ? pause() : play();
+});
+frame.addEventListener("keydown", function (e) {
+  if (e.key === " " || e.key === "Enter") { e.preventDefault(); playing ? pause() : play(); }
+  else if (e.key === "r" || e.key === "R") { replay(); }
+});
+
+/* boot */
+setPP(false);
+go(0, true);
+var CAPTURE = /capture/.test(location.hash);
+if (CAPTURE) {
+  /* frame-exact rendering for exporting a GIF/MP4: no clock, seek to any time */
+  frame.classList.remove("needsplay"); frame.classList.add("capture");
+  wipe.classList.add("go");
+  window.__TOTAL = TOTAL;
+  window.__seek = function (T) {
+    var idx = 0;
+    for (var k = 0; k < cum.length; k++) if (T >= cum[k]) idx = k;
+    var dt = T - cum[idx], disp = idx, local = idx === 0 ? dt : dt - WIPE, wipeT = null;
+    if (idx > 0 && dt < WIPE) { disp = idx - 1; local = T - cum[idx - 1] - (idx - 1 === 0 ? 0 : WIPE); }
+    if (idx > 0 && dt < 2 * WIPE) wipeT = dt;
+    if (shown !== disp) show(disp);
+    document.getAnimations().forEach(function (an) {
+      var tgt = an.effect && an.effect.target;
+      if (!tgt) return;
+      an.pause();
+      if (tgt === wipe) an.currentTime = wipeT == null ? 660 : wipeT * 1000;
+      else if (scenes[disp].contains(tgt)) an.currentTime = Math.max(0, local) * 1000;
+      else an.currentTime = T * 1000;
+    });
+    if (UPD[disp]) UPD[disp](Math.max(0, local));
+    fill.style.width = (T / TOTAL * 100) + "%";
+    return disp;
+  };
+} else if (reduce) { UPD[0](5); frame.classList.add("needsplay"); }
+else { play(); }
+</script>

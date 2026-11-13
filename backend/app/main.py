@@ -11,7 +11,9 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from app.config import settings
-from app.db.database import init_db
+from app.db.database import close_db, init_db
+from app.models.schemas import ALLOWED_PAIRS
+from app.services import candle_store
 from app.routers import alerts, auth, health, trade_review, ws
 from app.routers.ws import manager
 from app.services import market_state
@@ -155,8 +157,16 @@ async def on_tick(pair: str, price: float, timestamp: datetime):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
-    logger.info("Database initialised")
+    if await init_db():
+        pruned = await candle_store.prune(older_than_days=30)
+        for pair in ALLOWED_PAIRS:
+            history = await candle_store.load_recent(pair, limit=100)
+            if history:
+                stream.aggregator.seed(pair, history)
+                logger.info("Restored %d %s candles (last %s)", len(history), pair, history[-1].timestamp.isoformat())
+        if pruned:
+            logger.info("Pruned %d candles older than 30 days", pruned)
+        stream.on_candle_closed(candle_store.save_candle)
     manager.snapshot_provider = build_candle_snapshot
     market_state.set_aggregator(stream.aggregator)
     stream.on_tick(on_tick)
@@ -170,6 +180,7 @@ async def lifespan(app: FastAPI):
     except asyncio.CancelledError:
         pass
     logger.info("TwelveData stream stopped")
+    await close_db()
 
 
 app = FastAPI(

@@ -92,6 +92,10 @@ class CandleAggregator:
     def get_candles(self, pair: str) -> list[Candle]:
         return list(self._candles[pair])
 
+    def seed(self, pair: str, candles: list[Candle]) -> None:
+        """Load previously closed candles (e.g. from the database) ahead of live ticks."""
+        self._candles[pair] = list(candles)[-100:]
+
     def get_last_price(self, pair: str) -> Optional[float]:
         if pair in self._current:
             return self._current[pair]["close"]
@@ -108,11 +112,22 @@ class TwelveDataStream:
     def __init__(self):
         self.aggregator = CandleAggregator()
         self._on_tick_callbacks: list[Callable] = []
+        self._on_candle_closed_callbacks: list[Callable] = []
         self._running = False
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
 
     def on_tick(self, callback: Callable):
         self._on_tick_callbacks.append(callback)
+
+    def on_candle_closed(self, callback: Callable):
+        self._on_candle_closed_callbacks.append(callback)
+
+    async def _notify_closed(self, pair: str, candle: Candle):
+        for cb in self._on_candle_closed_callbacks:
+            try:
+                await cb(pair, candle)
+            except Exception as e:
+                logger.error(f"Candle-closed callback error: {e}")
 
     async def _notify(self, pair: str, price: float, timestamp: datetime):
         for cb in self._on_tick_callbacks:
@@ -174,7 +189,9 @@ class TwelveDataStream:
             pair = symbol  # Twelve Data uses the same format
             if pair not in PAIR_SYMBOLS:
                 return
-            self.aggregator.process_tick(pair, price, timestamp)
+            completed = self.aggregator.process_tick(pair, price, timestamp)
+            if completed is not None:
+                await self._notify_closed(pair, completed)
             await self._notify(pair, price, timestamp)
         elif event == "subscribe-status":
             logger.info(f"Subscription status: {data}")

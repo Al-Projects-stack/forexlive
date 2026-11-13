@@ -17,10 +17,12 @@ Built by a trader who trades USD/JPY and understands consolidation setups not a 
 | **Live Price Streaming** | WebSocket tick data for USD/JPY, EUR/USD, GBP/USD, USD/ZAR no polling |
 | **Consolidation Detector** | Flags when last 20 candles are ranging within 0.15% draws shaded band on chart |
 | **Key Level Alerts** | Set a price level → instant browser toast when price crosses it |
-| **News Calendar** | Next 5 high-impact events with live countdown + red banner when event is live |
+| **News Calendar** | This week's high and medium impact releases from ForexFactory with forecast, previous and a live countdown, plus a red banner when a high-impact print is minutes away |
 | **Session Indicator** | Tokyo / London / New York / Overlap in SAST overlap highlighted (highest liquidity) |
 | **Live Ticker** | Scrolling bid/ask bar for all 4 pairs, green/red on direction |
 | **Smart Money Concepts** | Order blocks, fair value gaps, liquidity sweeps and BOS/CHoCH detected from the candles and drawn on the chart, with a show/hide toggle |
+| **Structure Alerts** | Toast and desktop notification when a liquidity sweep or CHoCH prints, or price taps back into an open order block or FVG. Each event fires once; zone taps are rate-limited per zone |
+| **Candle History** | Closed 1-minute candles are stored in Postgres and reloaded on startup, so a restart or redeploy keeps the chart |
 | **AI Trade Review** | Claude reviews an open position against your alerts, the chart structure and the news calendar (needs `ANTHROPIC_API_KEY`) |
 | **Position P&L** | Track long and short positions per pair with live floating P&L |
 | **Desktop Notifications** | OS notifications for key levels and high-impact news when the tab is in the background |
@@ -46,14 +48,15 @@ Clients reconnect automatically after 3 seconds on disconnect. The server never 
 
 ```json
 {
-  "type": "CANDLE_UPDATE | KEY_LEVEL_ALERT | NEWS_WARNING | CONNECTED | PING",
+  "type": "CANDLE_UPDATE | CANDLE_HISTORY | KEY_LEVEL_ALERT | STRUCTURE_ALERT | NEWS_WARNING | CONNECTED | PING",
   "pair": "USD/JPY",
   "timestamp": "2026-05-17T10:30:00Z",
   "price": 154.91,
   "candle": { "open": 154.82, "high": 154.95, "low": 154.78, "close": 154.91, "volume": 1240 },
   "consolidation_zone": { "active": true, "upper": 155.10, "lower": 154.70, "midpoint": 154.90 },
   "key_level_triggered": { "level": 155.00, "direction": "ABOVE" },
-  "news_warning": { "event": "US Non-Farm Payrolls", "minutes_away": 3, "impact": "HIGH" }
+  "news_warning": { "event": "US Non-Farm Payrolls", "minutes_away": 3, "impact": "HIGH" },
+  "structure_alert": { "kind": "SWEEP", "direction": "BEARISH", "level": 155.12, "message": "USD/JPY swept liquidity above 155.120" }
 }
 ```
 
@@ -108,7 +111,7 @@ Backend API docs at [http://localhost:8000/docs](http://localhost:8000/docs) (de
 | Frontend | React 18, TypeScript, Tailwind CSS, TradingView Lightweight Charts v4 |
 | Backend | Python 3.11, FastAPI, WebSockets, asyncio |
 | Data | Twelve Data WebSocket API |
-| Database | PostgreSQL 15 (key level alerts, persistence) |
+| Database | PostgreSQL 15 (candle history), SQLite in local dev |
 | ORM | SQLAlchemy 2.0 async |
 | Containers | Docker, Docker Compose |
 | Deployment | Render |
@@ -151,7 +154,9 @@ forexlive/
 │   │   │   ├── key_levels.py    Alert persistence + trigger logic
 │   │   │   ├── smart_money.py   Order blocks, FVGs, sweeps, BOS/CHoCH
 │   │   │   ├── trade_review.py  Claude trade review + context assembly
-│   │   │   └── news_calendar.py Upcoming high-impact events
+│   │   │   ├── structure_alerts.py Sweep / CHoCH / OB + FVG tap alerts
+│   │   │   ├── candle_store.py  Candle persistence + restore
+│   │   │   └── news_calendar.py ForexFactory calendar with fallback schedule
 │   │   ├── models/schemas.py    Pydantic request/response models
 │   │   └── db/                  SQLAlchemy engine + ORM models
 │   └── tests/                   pytest test suite
@@ -206,6 +211,9 @@ Tests cover:
 - WebSocket ConnectionManager (connect, disconnect, broadcast, dead connection cleanup)
 - REST API validation (invalid pair, invalid direction, missing alert)
 - Health and news endpoints
+- Candle persistence (round trip, duplicate minutes, pruning, database unavailable)
+- Economic calendar parsing, caching, fallback and imminent-event detection
+- Structure alerts (priming, one-shot sweeps and CHoCH, zone entry, flicker cooldown, broadcast)
 
 ---
 

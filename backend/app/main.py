@@ -22,6 +22,7 @@ from app.services.key_levels import check_key_levels
 from app.services import news_calendar
 from app.services.news_calendar import get_imminent_high_impact_event
 from app.services.smart_money import analyze_smart_money
+from app.services.structure_alerts import StructureAlertTracker
 from app.services.twelve_data import TwelveDataStream
 
 logging.basicConfig(
@@ -31,6 +32,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 stream = TwelveDataStream()
+structure_alerts = StructureAlertTracker()
 limiter = Limiter(key_func=get_remote_address)
 
 
@@ -135,6 +137,21 @@ async def on_tick(pair: str, price: float, timestamp: datetime):
             "smart_money": smart_money_dict,
         }
         await manager.broadcast(pair, alert_message)
+
+    for alert in structure_alerts.update(pair, smart_money_zones, price, timestamp):
+        logger.info("Structure alert: %s", alert.message)
+        await manager.broadcast(pair, {
+            "type": "STRUCTURE_ALERT",
+            "pair": pair,
+            "timestamp": timestamp.isoformat(),
+            "price": price,
+            "candle": candle_dict,
+            "consolidation_zone": consolidation_dict,
+            "key_level_triggered": None,
+            "news_warning": None,
+            "smart_money": smart_money_dict,
+            "structure_alert": alert.model_dump(),
+        })
 
     # Send news warning broadcast to all pairs
     if news_event:

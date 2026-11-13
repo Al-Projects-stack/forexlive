@@ -11,7 +11,14 @@ const requestPermission = async (): Promise<boolean> => {
   return result === 'granted'
 }
 
-export const useDesktopNotifications = (lastMessage: WSMessage | null) => {
+const STRUCTURE_TITLES = {
+  SWEEP: 'Liquidity sweep',
+  CHOCH: 'Change of character',
+  OB_TAP: 'Order block tap',
+  FVG_TAP: 'FVG tap',
+} as const
+
+export const useDesktopNotifications = (lastMessage: WSMessage | null, structureAlerts = true) => {
   const permittedRef = useRef(false)
 
   useEffect(() => {
@@ -36,6 +43,11 @@ export const useDesktopNotifications = (lastMessage: WSMessage | null) => {
       new Notification(title, { body })
     }
 
+    if (structureAlerts && lastMessage.type === 'STRUCTURE_ALERT' && lastMessage.structure_alert) {
+      const alert = lastMessage.structure_alert
+      new Notification(`${STRUCTURE_TITLES[alert.kind]} · ${lastMessage.pair}`, { body: alert.message })
+    }
+
     if (lastMessage.type === 'NEWS_WARNING' && lastMessage.news_warning) {
       const { event, minutes_away, impact } = lastMessage.news_warning
       if (impact === 'HIGH') {
@@ -44,5 +56,5 @@ export const useDesktopNotifications = (lastMessage: WSMessage | null) => {
         new Notification(title, { body })
       }
     }
-  }, [lastMessage])
+  }, [lastMessage, structureAlerts])
 }

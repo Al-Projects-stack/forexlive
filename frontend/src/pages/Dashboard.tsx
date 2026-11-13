@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
-import { PAIRS, Pair, Alert } from '../types'
+import { PAIRS, Pair, Alert, StructureAlert } from '../types'
 import { useAuth } from '../context/AuthContext'
 import { useChartData } from '../hooks/useChartData'
 import { useDesktopNotifications } from '../hooks/useDesktopNotifications'
@@ -17,6 +17,20 @@ import { PositionPnL } from '../components/PositionPnL'
 import { SmartMoneyPanel } from '../components/SmartMoneyPanel'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const STRUCTURE_ALERTS_KEY = 'forexlive_structure_alerts'
+
+interface RecentStructureAlert extends StructureAlert {
+  pair: Pair
+  at: string
+}
+
+const readStructureAlertsPref = (): boolean => {
+  try {
+    return localStorage.getItem(STRUCTURE_ALERTS_KEY) !== 'false'
+  } catch {
+    return true
+  }
+}
 
 export const Dashboard = () => {
   const { user, logout } = useAuth()
@@ -24,12 +38,28 @@ export const Dashboard = () => {
   const [activePair, setActivePair] = useState<Pair>('EUR/USD')
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [showSmartMoney, setShowSmartMoney] = useState(true)
+  const [structureAlertsOn, setStructureAlertsOn] = useState(readStructureAlertsPref)
+  const [recentStructureAlerts, setRecentStructureAlerts] = useState<RecentStructureAlert[]>([])
 
   const handleLogout = () => { logout(); navigate('/') }
 
   const { candles, currentPrice, consolidationZone, smartMoney, lastMessage, isConnected, connectionError } = useChartData(activePair)
 
-  useDesktopNotifications(lastMessage)
+  useDesktopNotifications(lastMessage, structureAlertsOn)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STRUCTURE_ALERTS_KEY, String(structureAlertsOn))
+    } catch {
+      // Preference just won't persist
+    }
+  }, [structureAlertsOn])
+
+  useEffect(() => {
+    if (lastMessage?.type !== 'STRUCTURE_ALERT' || !lastMessage.structure_alert) return
+    const entry = { ...lastMessage.structure_alert, pair: lastMessage.pair, at: lastMessage.timestamp }
+    setRecentStructureAlerts((prev) => [entry, ...prev].slice(0, 5))
+  }, [lastMessage])
 
   // Fetch persisted alerts on mount and pair change
   useEffect(() => {
@@ -71,7 +101,7 @@ export const Dashboard = () => {
       <NewsWarningBanner lastMessage={lastMessage} />
 
       {/* Alert notifications */}
-      <KeyLevelAlert lastMessage={lastMessage} pair={activePair} />
+      <KeyLevelAlert lastMessage={lastMessage} pair={activePair} structureAlerts={structureAlertsOn} />
 
       {/* Ticker */}
       <LiveTicker />
@@ -161,6 +191,9 @@ export const Dashboard = () => {
             smartMoney={smartMoney}
             show={showSmartMoney}
             onToggle={() => setShowSmartMoney((v) => !v)}
+            alertsOn={structureAlertsOn}
+            onToggleAlerts={() => setStructureAlertsOn((v) => !v)}
+            recentAlerts={recentStructureAlerts.filter((a) => a.pair === activePair)}
           />
 
           <div className="w-full h-px bg-terminal-border" />

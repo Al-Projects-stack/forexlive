@@ -1,14 +1,26 @@
-import { Stack, ArrowsOutLineVertical, Waves, TrendUp, TrendDown } from '@phosphor-icons/react'
-import { Pair, SmartMoneyZones } from '../types'
+import { Stack, ArrowsOutLineVertical, Waves, TrendUp, TrendDown, Bell, BellSlash } from '@phosphor-icons/react'
+import { Pair, SmartMoneyZones, StructureAlert } from '../types'
 
 interface SmartMoneyPanelProps {
   pair: Pair
   smartMoney: SmartMoneyZones | null
   show: boolean
   onToggle: () => void
+  alertsOn: boolean
+  onToggleAlerts: () => void
+  recentAlerts: (StructureAlert & { at: string })[]
 }
 
-export const SmartMoneyPanel = ({ pair, smartMoney, show, onToggle }: SmartMoneyPanelProps) => {
+const KIND_LABELS: Record<StructureAlert['kind'], string> = {
+  SWEEP: 'Sweep',
+  CHOCH: 'CHoCH',
+  OB_TAP: 'OB tap',
+  FVG_TAP: 'FVG tap',
+}
+
+export const SmartMoneyPanel = ({
+  pair, smartMoney, show, onToggle, alertsOn, onToggleAlerts, recentAlerts,
+}: SmartMoneyPanelProps) => {
   const digits = pair === 'USD/JPY' ? 3 : 5
   const fmt = (n: number) => n.toFixed(digits)
 
@@ -25,6 +37,22 @@ export const SmartMoneyPanel = ({ pair, smartMoney, show, onToggle }: SmartMoney
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-gray-400 text-xs tracking-widest uppercase">Smart Money</span>
+        <div className="flex items-center gap-1.5">
+        <button
+          onClick={onToggleAlerts}
+          aria-pressed={alertsOn}
+          aria-label={alertsOn ? 'Mute structure alerts' : 'Turn on structure alerts'}
+          title={alertsOn ? 'Alerts on: sweeps, CHoCH, OB and FVG taps' : 'Structure alerts muted'}
+          className={`p-1 rounded border transition-colors ${
+            alertsOn
+              ? 'border-blue-500/40 bg-blue-500/10 text-blue-300'
+              : 'border-terminal-border text-gray-600 hover:text-gray-400'
+          }`}
+        >
+          {alertsOn
+            ? <Bell size={12} weight="bold" aria-hidden="true" />
+            : <BellSlash size={12} weight="bold" aria-hidden="true" />}
+        </button>
         <button
           onClick={onToggle}
           aria-pressed={show}
@@ -36,6 +64,7 @@ export const SmartMoneyPanel = ({ pair, smartMoney, show, onToggle }: SmartMoney
         >
           {show ? 'ON' : 'OFF'}
         </button>
+        </div>
       </div>
 
       {!show && (
@@ -105,6 +134,27 @@ export const SmartMoneyPanel = ({ pair, smartMoney, show, onToggle }: SmartMoney
               <ArrowsOutLineVertical size={14} weight="bold" aria-hidden="true" />
               <span>{fvg.type === 'BULLISH' ? 'Bullish FVG' : 'Bearish FVG'}</span>
               <span className="text-gray-500 ml-auto font-mono">{fmt(fvg.bottom)}–{fmt(fvg.top)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {recentAlerts.length > 0 && (
+        <div className="flex flex-col gap-1 mt-1">
+          <span className="text-[10px] text-gray-600 uppercase tracking-widest">Recent alerts</span>
+          {recentAlerts.map((a, i) => (
+            <div key={`${a.at}-${i}`} className="flex items-center gap-2 text-[11px] font-mono">
+              <span className="text-gray-600">
+                {new Date(a.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+              <span className={a.direction === 'BULLISH' ? 'text-green-400' : 'text-red-400'}>
+                {KIND_LABELS[a.kind]}
+              </span>
+              <span className="text-gray-500 ml-auto">
+                {a.level != null
+                  ? fmt(a.level)
+                  : a.bottom != null && a.top != null ? `${fmt(a.bottom)}–${fmt(a.top)}` : ''}
+              </span>
             </div>
           ))}
         </div>

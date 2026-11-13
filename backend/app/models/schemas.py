@@ -56,6 +56,15 @@ class SmartMoneyZones(BaseModel):
     structure: Optional[MarketStructureEvent] = None
 
 
+class StructureAlert(BaseModel):
+    kind: str  # SWEEP | CHOCH | OB_TAP | FVG_TAP
+    direction: str  # BULLISH | BEARISH
+    level: Optional[float] = None
+    top: Optional[float] = None
+    bottom: Optional[float] = None
+    message: str
+
+
 class KeyLevelTriggered(BaseModel):
     level: float
     direction: str

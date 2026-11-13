@@ -68,6 +68,7 @@ export type WSMessageType =
   | 'CANDLE_HISTORY'
   | 'KEY_LEVEL_ALERT'
   | 'NEWS_WARNING'
+  | 'STRUCTURE_ALERT'
   | 'CONSOLIDATION'
   | 'CONNECTED'
   | 'PING'
@@ -83,6 +84,16 @@ export interface WSMessage {
   key_level_triggered?: KeyLevelTriggered
   news_warning?: NewsWarning
   smart_money?: SmartMoneyZones
+  structure_alert?: StructureAlert
+}
+
+export interface StructureAlert {
+  kind: 'SWEEP' | 'CHOCH' | 'OB_TAP' | 'FVG_TAP'
+  direction: 'BULLISH' | 'BEARISH'
+  level?: number | null
+  top?: number | null
+  bottom?: number | null
+  message: string
 }
 
 export interface Alert {

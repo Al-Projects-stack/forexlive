@@ -38,6 +38,21 @@ Requests permission once on first mount and caches the result in localStorage.
 - Backend assembles the trade's live context from its own services (consolidation, smart-money structure, the trader's key levels, imminent high-impact news) and asks Claude (`claude-opus-5`) for a short, specific critique
 - Requires `ANTHROPIC_API_KEY` on the server; degrades gracefully (503 + inline message) when unset. Key stays server-side.
 
+### Candle history (`services/candle_store.py`)
+- Every closed 1-minute candle is written to the `candles` table (unique on pair + minute)
+- On startup the last 100 per pair are seeded back into the aggregator; rows older than 30 days are pruned
+- If the database can't be reached, `init_db()` returns False and the app runs in memory as before
+
+### Economic calendar (`services/news_calendar.py`)
+- ForexFactory weekly JSON (`nfs.faireconomy.media/ff_calendar_thisweek.json`, no key), refreshed every 30 min by a lifespan task
+- Keeps High/Medium impact for currencies in `ALLOWED_PAIRS`; the feed has forecast and previous but no actual
+- Falls back to a static typical-times schedule (`source: "fallback"`) only if the feed has never loaded
+
+### Structure alerts (`services/structure_alerts.py`)
+- `StructureAlertTracker.update()` runs on every tick against the smart-money analysis and emits `STRUCTURE_ALERT` WS messages
+- First update per pair primes silently; sweeps and CHoCH fire once; OB/FVG taps fire on entry with a 15-minute per-zone cooldown
+- Bell toggle in the Smart Money panel mutes toasts and desktop notifications (`forexlive_structure_alerts` in localStorage)
+
 ## New Files
 
 | File | Purpose |

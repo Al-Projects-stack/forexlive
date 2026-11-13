@@ -19,6 +19,7 @@ from app.routers.ws import manager
 from app.services import market_state
 from app.services.consolidation import get_consolidation_zone
 from app.services.key_levels import check_key_levels
+from app.services import news_calendar
 from app.services.news_calendar import get_imminent_high_impact_event
 from app.services.smart_money import analyze_smart_money
 from app.services.twelve_data import TwelveDataStream
@@ -171,14 +172,16 @@ async def lifespan(app: FastAPI):
     market_state.set_aggregator(stream.aggregator)
     stream.on_tick(on_tick)
     task = asyncio.create_task(stream.start())
+    calendar_task = asyncio.create_task(news_calendar.run_refresher())
     logger.info("TwelveData stream started")
     yield
     await stream.stop()
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    for t in (task, calendar_task):
+        t.cancel()
+        try:
+            await t
+        except asyncio.CancelledError:
+            pass
     logger.info("TwelveData stream stopped")
     await close_db()
 

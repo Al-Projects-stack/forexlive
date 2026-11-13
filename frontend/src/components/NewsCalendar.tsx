@@ -9,6 +9,17 @@ const IMPACT_COLORS: Record<string, string> = {
   LOW: 'text-gray-500 border-gray-700 bg-gray-800/50',
 }
 
+function formatLocalTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+function sourceLabel(events: NewsEvent[]): string | null {
+  const first = events[0]
+  if (!first?.source) return null
+  if (first.source === 'fallback') return 'Estimated schedule'
+  return first.updated_at ? `ForexFactory · ${formatLocalTime(first.updated_at)}` : 'ForexFactory'
+}
+
 function formatCountdown(minutes: number): string {
   if (minutes < 0) return 'LIVE'
   if (minutes === 0) return 'NOW'
@@ -53,7 +64,17 @@ export const NewsCalendar = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-gray-400 text-xs tracking-widest uppercase">News Calendar</span>
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-gray-400 text-xs tracking-widest uppercase">News Calendar</span>
+        {sourceLabel(events) && (
+          <span
+            className="text-[10px] text-gray-600 truncate"
+            title={events[0]?.source === 'fallback' ? 'Live calendar unavailable, showing typical release times' : 'Live economic calendar'}
+          >
+            {sourceLabel(events)}
+          </span>
+        )}
+      </div>
 
       {loading && <span className="text-gray-600 text-xs">Loading events...</span>}
 
@@ -65,7 +86,16 @@ export const NewsCalendar = () => {
           >
             <div className="flex flex-col flex-1 min-w-0">
               <span className="font-medium truncate">{event.name}</span>
-              <span className="text-gray-500 text-xs mt-0.5">{event.currency}</span>
+              <span className="text-gray-500 text-xs mt-0.5">
+                {event.currency} · {formatLocalTime(event.scheduled_at)}
+              </span>
+              {(event.forecast || event.previous) && (
+                <span className="text-gray-500 text-[11px] font-mono mt-0.5">
+                  {event.forecast && <>F {event.forecast}</>}
+                  {event.forecast && event.previous && ' · '}
+                  {event.previous && <>P {event.previous}</>}
+                </span>
+              )}
             </div>
             <div className="flex flex-col items-end shrink-0">
               <span className="font-mono font-semibold">{formatCountdown(event.minutes_away)}</span>
@@ -74,7 +104,7 @@ export const NewsCalendar = () => {
           </div>
         ))}
         {!loading && events.length === 0 && (
-          <span className="text-gray-600 text-xs">No upcoming events</span>
+          <span className="text-gray-600 text-xs">No more scheduled releases this week</span>
         )}
       </div>
     </div>

@@ -100,6 +100,10 @@ export interface NewsEvent {
   impact: 'HIGH' | 'MEDIUM' | 'LOW'
   scheduled_at: string
   minutes_away: number
+  forecast?: string | null
+  previous?: string | null
+  source?: 'forexfactory' | 'fallback'
+  updated_at?: string | null
 }
 
 export type Session = 'Tokyo' | 'London' | 'New York' | 'Overlap' | 'Off-Hours'
